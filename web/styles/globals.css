@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  background: #0A0A0A;
+  color: #F8F8FF;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: radial-gradient(circle at 20% 20%, rgba(45, 0, 75, 0.4), transparent 25%),
+              radial-gradient(circle at 80% 0%, rgba(212, 175, 55, 0.2), transparent 20%),
+              #0A0A0A;
+  min-height: 100vh;
+}
+
+.card {
+  @apply bg-neutral-900/70 border border-neutral-800 rounded-2xl p-6 shadow-glow;
+  backdrop-filter: blur(16px);
+}
+
+.section-title {
+  @apply text-lg uppercase tracking-[0.2em] text-aurum;
+}
+
