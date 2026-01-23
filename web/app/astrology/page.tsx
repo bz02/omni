@@ -4,8 +4,10 @@ import { useState } from "react";
 import { MoonStar, Loader2, Info } from "lucide-react";
 import clsx from "clsx";
 import { motion } from "framer-motion";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function AstrologyPage() {
+    const { t, locale } = useLanguage();
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<any>(null);
 
@@ -19,7 +21,7 @@ export default function AstrologyPage() {
             const res = await fetch("/api/astrology", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(data),
+                body: JSON.stringify({ ...data, locale }),
             });
             const json = await res.json();
             setResult(json);
@@ -35,10 +37,10 @@ export default function AstrologyPage() {
             <header className="space-y-4 text-center">
                 <h1 className="text-4xl font-bold flex items-center justify-center gap-3">
                     <MoonStar className="text-aurum w-8 h-8" />
-                    Smart Astrology Engine
+                    {t.astrology.title}
                 </h1>
                 <p className="text-neutral-400 max-w-xl mx-auto">
-                    Enter your precise birth data to generate a comprehensive natal chart, analyze planetary aspects, and track real-time cosmic transits.
+                    {t.astrology.desc}
                 </p>
             </header>
 
@@ -46,10 +48,10 @@ export default function AstrologyPage() {
                 {/* Input Form */}
                 <div className="bg-neutral-900/50 border border-neutral-800 rounded-2xl p-6 h-fit bg-gradient-to-b from-neutral-900/50 to-transparent">
                     <form onSubmit={handleSubmit} className="space-y-4">
-                        <h2 className="text-xl font-semibold text-aurum mb-4">Birth Data</h2>
+                        <h2 className="text-xl font-semibold text-aurum mb-4">{t.astrology.form.title}</h2>
 
                         <div className="space-y-2">
-                            <label className="text-sm text-neutral-400">Date of Birth</label>
+                            <label className="text-sm text-neutral-400">{t.astrology.form.date}</label>
                             <input
                                 name="date"
                                 type="date"
@@ -60,7 +62,7 @@ export default function AstrologyPage() {
                         </div>
 
                         <div className="space-y-2">
-                            <label className="text-sm text-neutral-400">Time of Birth</label>
+                            <label className="text-sm text-neutral-400">{t.astrology.form.time}</label>
                             <input
                                 name="time"
                                 type="time"
@@ -72,7 +74,7 @@ export default function AstrologyPage() {
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <label className="text-sm text-neutral-400">Latitude</label>
+                                <label className="text-sm text-neutral-400">{t.astrology.form.lat}</label>
                                 <input
                                     name="lat"
                                     placeholder="e.g. 40.71"
@@ -80,7 +82,7 @@ export default function AstrologyPage() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-sm text-neutral-400">Longitude</label>
+                                <label className="text-sm text-neutral-400">{t.astrology.form.long}</label>
                                 <input
                                     name="long"
                                     placeholder="e.g. -74.00"
@@ -93,7 +95,7 @@ export default function AstrologyPage() {
                             disabled={loading}
                             className="w-full bg-aurum text-black font-semibold py-3 rounded-lg hover:bg-aurum/90 transition-all flex items-center justify-center gap-2 mt-4"
                         >
-                            {loading ? <Loader2 className="animate-spin w-4 h-4" /> : "Calculate Natal Chart"}
+                            {loading ? <Loader2 className="animate-spin w-4 h-4" /> : t.astrology.form.calculate}
                         </button>
                     </form>
                 </div>
@@ -103,7 +105,7 @@ export default function AstrologyPage() {
                     {!result && !loading && (
                         <div className="h-full flex flex-col items-center justify-center text-neutral-500 border border-dashed border-neutral-800 rounded-2xl p-12 bg-neutral-900/20">
                             <Info className="w-10 h-10 mb-4 opacity-50" />
-                            <p>Chart data will appear here</p>
+                            <p>{t.astrology.results.empty}</p>
                         </div>
                     )}
 
@@ -114,7 +116,7 @@ export default function AstrologyPage() {
                             className="space-y-6"
                         >
                             <div className="bg-neutral-900/50 border border-neutral-800 rounded-2xl p-6">
-                                <h3 className="text-lg font-semibold text-aurum mb-4 border-b border-neutral-800 pb-2">Planetary Positions</h3>
+                                <h3 className="text-lg font-semibold text-aurum mb-4 border-b border-neutral-800 pb-2">{t.astrology.results.planets}</h3>
                                 <div className="space-y-2 text-sm">
                                     {result.planets.map((p: any) => (
                                         <div key={p.name} className="flex justify-between items-center py-1 border-b border-neutral-800/50 last:border-0 hover:bg-neutral-800/30 px-2 rounded">
@@ -126,7 +128,7 @@ export default function AstrologyPage() {
                             </div>
 
                             <div className="bg-neutral-900/50 border border-neutral-800 rounded-2xl p-6">
-                                <h3 className="text-lg font-semibold text-aurum mb-4 border-b border-neutral-800 pb-2">Major Aspects</h3>
+                                <h3 className="text-lg font-semibold text-aurum mb-4 border-b border-neutral-800 pb-2">{t.astrology.results.aspects}</h3>
                                 <div className="space-y-2 text-sm">
                                     {result.aspects.map((a: any, i: number) => (
                                         <div key={i} className="flex items-center gap-2 py-1">
@@ -148,7 +150,7 @@ export default function AstrologyPage() {
                                 <div className="absolute top-0 right-0 p-4 opacity-10">
                                     <MoonStar className="w-24 h-24 text-aurum" />
                                 </div>
-                                <h3 className="text-lg font-semibold text-aurum mb-3 relative z-10">Cosmic Analysis</h3>
+                                <h3 className="text-lg font-semibold text-aurum mb-3 relative z-10">{t.astrology.results.analysis}</h3>
                                 <div className="prose prose-invert prose-sm max-w-none text-neutral-300 relative z-10 whitespace-pre-line leading-relaxed">
                                     {result.analysis}
                                 </div>
@@ -156,7 +158,7 @@ export default function AstrologyPage() {
 
                             <div className="flex justify-center pt-4">
                                 <button className="text-sm text-aurum hover:underline underline-offset-4 opacity-80 hover:opacity-100 transition-opacity">
-                                    Download Full PDF Report
+                                    {t.astrology.results.download}
                                 </button>
                             </div>
                         </motion.div>

@@ -5,10 +5,12 @@ import { HandCoins, CreditCard, CheckCircle2, Loader2, Sparkles } from "lucide-r
 import { motion, AnimatePresence } from "framer-motion";
 import canvasConfetti from 'canvas-confetti';
 import clsx from "clsx";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 const tipAmounts = [5.55, 11.11, 22.22, 33.33, 88.88];
 
 export default function PaymentsPage() {
+    const { t } = useLanguage();
     const [selectedAmount, setSelectedAmount] = useState<number | null>(null);
     const [customAmount, setCustomAmount] = useState("");
     const [loading, setLoading] = useState(false);
@@ -52,13 +54,13 @@ export default function PaymentsPage() {
                 >
                     <CheckCircle2 className="w-10 h-10" />
                 </motion.div>
-                <h2 className="text-3xl font-bold">Thank You!</h2>
-                <p className="text-neutral-400">Your energy exchange has been received. May the stars align for you.</p>
+                <h2 className="text-3xl font-bold">{t.payments.thankYou}</h2>
+                <p className="text-neutral-400">{t.payments.thankYouDesc}</p>
                 <button
                     onClick={() => { setSuccess(false); setSelectedAmount(null); setCustomAmount(""); }}
                     className="text-aurum hover:underline"
                 >
-                    Send another tip
+                    {t.payments.again}
                 </button>
             </div>
         );
@@ -69,16 +71,16 @@ export default function PaymentsPage() {
             <header className="text-center space-y-4">
                 <h1 className="text-4xl font-bold flex items-center justify-center gap-3 text-aurum">
                     <HandCoins className="w-8 h-8" />
-                    Tip Omni
+                    {t.payments.title}
                 </h1>
                 <p className="text-neutral-400">
-                    Support the cosmic infrastructure. Your contribution keeps the Oracle awake and the Ephemeris spinning.
+                    {t.payments.desc}
                 </p>
             </header>
 
             <div className="bg-neutral-900/50 border border-neutral-800 rounded-2xl p-8 space-y-8">
                 <div className="space-y-4">
-                    <label className="text-sm font-medium text-neutral-300">Select Amount</label>
+                    <label className="text-sm font-medium text-neutral-300">{t.payments.select}</label>
                     <div className="grid grid-cols-3 gap-3">
                         {tipAmounts.map((amt) => (
                             <button
@@ -98,7 +100,7 @@ export default function PaymentsPage() {
                             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500">$</span>
                             <input
                                 type="number"
-                                placeholder="Custom"
+                                placeholder={t.payments.custom}
                                 value={customAmount}
                                 onChange={(e) => { setCustomAmount(e.target.value); setSelectedAmount(null); }}
                                 className={clsx(
@@ -111,7 +113,7 @@ export default function PaymentsPage() {
                 </div>
 
                 <div className="space-y-4">
-                    <label className="text-sm font-medium text-neutral-300">Payment Method</label>
+                    <label className="text-sm font-medium text-neutral-300">{t.payments.method}</label>
                     <div className="p-4 border border-neutral-800 rounded-xl bg-black/20 flex items-center gap-3 text-neutral-400">
                         <CreditCard className="w-5 h-5" />
                         <span>Card ending in 4242 (Mock)</span>
@@ -124,12 +126,12 @@ export default function PaymentsPage() {
                     disabled={loading || (!selectedAmount && !customAmount)}
                     className="w-full bg-gradient-to-r from-aurum to-amber-600 text-black font-bold py-4 rounded-xl shadow-glow hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                    {loading ? <Loader2 className="animate-spin" /> : <><Sparkles className="w-4 h-4" /> Send Tip</>}
+                    {loading ? <Loader2 className="animate-spin" /> : <><Sparkles className="w-4 h-4" /> {t.payments.send}</>}
                 </button>
 
                 <p className="text-xs text-center text-neutral-500 flex items-center justify-center gap-1">
                     <CheckCircle2 className="w-3 h-3" />
-                    Secure Payment Processing
+                    {t.payments.secure}
                 </p>
             </div>
         </div>

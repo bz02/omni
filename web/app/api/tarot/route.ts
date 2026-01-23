@@ -8,16 +8,43 @@ const majorArcana = [
   "Judgement", "The World"
 ];
 
-const suits = ["Wands", "Cups", "Swords", "Pentacles"];
+const majorArcanaZh = [
+  "愚人", "魔术师", "女祭司", "皇后", "皇帝",
+  "教皇", "恋人", "战车", "力量", "隐士",
+  "命运之轮", "正义", "倒吊人", "死神", "节制",
+  "恶魔", "高塔", "星星", "月亮", "太阳",
+  "审判", "世界"
+];
 
-// Generate full deck
-const fullDeck = [
-  ...majorArcana.map(name => ({ name, type: 'Major' })),
-  ...suits.flatMap(suit =>
-    ["Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Page", "Knight", "Queen", "King"]
-      .map(val => ({ name: `${val} of ${suit}`, type: 'Minor' }))
+const suits = ["Wands", "Cups", "Swords", "Pentacles"];
+const suitsZh = ["权杖", "圣杯", "宝剑", "星币"];
+
+const values = ["Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Page", "Knight", "Queen", "King"];
+const valuesZh = ["首牌", "2", "3", "4", "5", "6", "7", "8", "9", "10", "侍从", "骑士", "王后", "国王"];
+
+// Generate full decks
+const generateDeck = (majors: string[], suitNames: string[], vals: string[]) => [
+  ...majors.map(name => ({ name, type: 'Major' })),
+  ...suitNames.flatMap(suit =>
+    vals.map(val => ({ name: `${suit}${val}`, type: 'Minor' })) // Chinese style usually Suit+Value e.g. 权杖5
   )
 ];
+
+const deckEn = [
+  ...majorArcana.map(name => ({ name, type: 'Major' })),
+  ...suits.flatMap(suit =>
+    values.map(val => ({ name: `${val} of ${suit}`, type: 'Minor' }))
+  )
+];
+
+// For Chinese deck construction
+const deckZh = [
+  ...majorArcanaZh.map(name => ({ name, type: 'Major' })),
+  ...suitsZh.flatMap(suit =>
+    valuesZh.map(val => ({ name: `${suit}${val}`, type: 'Minor' }))
+  )
+];
+
 
 // Fisher-Yates Shuffle
 function shuffleDeck(deck: any[]) {
@@ -32,8 +59,10 @@ function shuffleDeck(deck: any[]) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { question, spreadType } = body;
+    const { question, spreadType, locale } = body;
+    const isZh = locale === 'zh';
 
+    const fullDeck = isZh ? deckZh : deckEn;
     const shuffled = shuffleDeck(fullDeck);
 
     // Draw based on spread
@@ -47,7 +76,15 @@ export async function POST(request: Request) {
     }));
 
     // Mock AI interpretation
-    const interpretation = `You asked: "${question}". 
+    const interpretation = isZh
+      ? `您问了: "${question}"。
+    
+    牌面预示着强烈的转变。第一张牌 ${drawnCards[0].name} ${drawnCards[0].isReversed ? '(逆位)' : ''} 表明您当下的基础正在动摇。
+    
+    随着 ${drawnCards[1].name} 的出现，宇宙召唤您去审视内心的动机。
+    
+    如果您能拥抱 ${drawnCards[drawnCards.length - 1].name} 的能量，结果将是非常积极的。`
+      : `You asked: "${question}". 
     
     The cards suggest a powerful transition. ${drawnCards[0].name} ${drawnCards[0].isReversed ? '(Reversed)' : ''} in the first position indicates that your current foundation is shifting.
     
@@ -67,4 +104,3 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request" }, { status: 400 });
   }
 }
-

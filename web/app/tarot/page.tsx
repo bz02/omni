@@ -4,19 +4,25 @@ import { useState } from "react";
 import { Compass, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import clsx from "clsx";
-
-const spreads = [
-    { id: "Three-Card", name: "Past / Present / Future", count: 3 },
-    { id: "Celtic Cross", name: "Celtic Cross", count: 10 },
-    { id: "Decision", name: "Either / Or Decision", count: 2 },
-];
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function TarotPage() {
+    const { t, locale } = useLanguage();
+
+    const spreads = [
+        { id: "Three-Card", name: t.tarot.spreads.three, count: 3 },
+        { id: "Celtic Cross", name: t.tarot.spreads.celtic, count: 10 },
+        { id: "Decision", name: t.tarot.spreads.decision, count: 2 },
+    ];
+
     const [question, setQuestion] = useState("");
     const [selectedSpread, setSelectedSpread] = useState(spreads[0]);
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<any>(null);
     const [flippedCards, setFlippedCards] = useState<number[]>([]);
+
+    // Update selected spread when component re-renders if the ID matches (to update label)
+    const currentSpreadLabel = spreads.find(s => s.id === selectedSpread.id)?.name || selectedSpread.name;
 
     async function handleDraw() {
         if (!question) return;
@@ -28,7 +34,8 @@ export default function TarotPage() {
             const res = await fetch("/api/tarot", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ question, spreadType: selectedSpread.id }),
+                // Pass locale to API
+                body: JSON.stringify({ question, spreadType: selectedSpread.id, locale }),
             });
             const json = await res.json();
             setResult(json);
@@ -50,26 +57,26 @@ export default function TarotPage() {
             <header className="space-y-4 text-center">
                 <h1 className="text-4xl font-bold flex items-center justify-center gap-3">
                     <Compass className="text-aurum w-8 h-8" />
-                    AI Immersive Tarot
+                    {t.tarot.title}
                 </h1>
                 <p className="text-neutral-400 max-w-xl mx-auto">
-                    Focus on your question. Let the Fisher-Yates algorithm shuffle the deck, and receive AI-synthesized guidance.
+                    {t.tarot.desc}
                 </p>
             </header>
 
             <div className="max-w-2xl mx-auto space-y-6">
                 <div className="space-y-2">
-                    <label className="text-sm text-neutral-400">Your Question</label>
+                    <label className="text-sm text-neutral-400">{t.tarot.questionLabel}</label>
                     <input
                         value={question}
                         onChange={(e) => setQuestion(e.target.value)}
-                        placeholder="What should I focus on this month?"
+                        placeholder={t.tarot.questionPlaceholder}
                         className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3 focus:border-aurum/50 outline-none transition-colors"
                     />
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm text-neutral-400">Select Spread</label>
+                    <label className="text-sm text-neutral-400">{t.tarot.selectSpread}</label>
                     <div className="flex flex-wrap gap-2">
                         {spreads.map((spread) => (
                             <button
@@ -93,7 +100,7 @@ export default function TarotPage() {
                     disabled={!question || loading}
                     className="w-full bg-gradient-to-r from-nebula to-neutral-900 border border-aurum/30 text-aurum font-semibold py-4 rounded-xl hover:opacity-90 transition-all shadow-glow disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                    {loading ? <Loader2 className="animate-spin" /> : "Shuffle & Draw Cards"}
+                    {loading ? <Loader2 className="animate-spin" /> : t.tarot.draw}
                 </button>
             </div>
 
@@ -153,7 +160,7 @@ export default function TarotPage() {
                                 animate={{ opacity: 1, y: 0 }}
                                 className="max-w-3xl mx-auto bg-neutral-900/50 border border-neutral-800 rounded-2xl p-8"
                             >
-                                <h3 className="text-xl font-semibold text-aurum mb-4">Oracle Interpretation</h3>
+                                <h3 className="text-xl font-semibold text-aurum mb-4">{t.tarot.interpretation}</h3>
                                 <div className="prose prose-invert max-w-none text-neutral-300 whitespace-pre-line leading-relaxed">
                                     {result.interpretation}
                                 </div>

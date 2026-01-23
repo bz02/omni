@@ -3,15 +3,25 @@
 AI-native astrology + tarot + MBTI + Oracle assistant with payment tips.
 
 ## Repository layout
-- `web/` – Next.js web experience with UI for astrology, tarot, MBTI, Oracle AI, and tipping entry point. Includes API stubs you can wire to real services.
-- Future (mobile) – Flutter app can reuse APIs/services defined below.
+- `web/` – Next.js web experience with UI for astrology, tarot, MBTI, Oracle AI, and tipping entry point.
+- **New Features**:
+    - **Omni Oracle**: Real-time AI chat connected to OpenAI with 3 distinct personas (Mentor, Healer, Prophet).
+    - **Payments**: Tipping system with simulated payment processing and success animations.
 
 ## Quick start (web)
-```bash
-cd web
-npm install
-npm run dev
-```
+1.  Navigate to the web directory:
+    ```bash
+    cd web
+    npm install
+    ```
+2.  **Important**: Create a `.env.local` file in `web/` and add your OpenAI API Key for the Oracle to work:
+    ```
+    OPENAI_API_KEY=sk-your-openai-key-here
+    ```
+3.  Run the development server:
+    ```bash
+    npm run dev
+    ```
 
 ## High-level architecture
 - **Frontend (web/mobile)**: Next.js (web) + Flutter (mobile) with shared design tokens. Uses WebSocket for streaming AI responses and push notification registration.
@@ -30,18 +40,18 @@ Create `web/.env.local` for local dev (example keys):
 NEXT_PUBLIC_API_BASE=https://api.omni.yourdomain.com
 STRIPE_SECRET_KEY=sk_live_xxx
 STRIPE_WEBHOOK_SECRET=whsec_xxx
-OPENAI_API_KEY=sk-...
+OPENAI_API_KEY=sk-... (Required for Oracle)
 GEMINI_API_KEY=...
 PINECONE_API_KEY=...
 POSTGRES_URL=postgres://user:pass@host:5432/omni
 ```
 
-## API stubs (web/app/api)
+## API Routes (web/app/api)
 - `GET /api/astrology` – sample chart/aspect/transit payload.
 - `POST /api/tarot` – Fisher–Yates shuffle mock draw.
 - `POST /api/mbti` – mock Step II scoring payload.
-- `POST /api/oracle` – sample persona reply with memory hint.
-- `POST /api/payments` – mock PaymentIntent response.
+- `POST /api/oracle` – **Live**: Connects to OpenAI to generate persona-based responses.
+- `POST /api/payments` – **Mock**: Simulates payment processing with success confetti.
 
 Replace mocks with real services behind your gateway. Keep PII scrubbing before LLM calls.
 

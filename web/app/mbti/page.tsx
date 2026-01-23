@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { Brain, ArrowRight, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
-import clsx from "clsx";
+import { useLanguage } from "@/contexts/LanguageContext";
 
-// Sample questions (Subset)
+// In real app, we would have multilingual questions in the API or translation file.
+// For now, we will just translate the UI frame.
 const questions = [
     { id: 1, text: "When you have a free evening, do you prefer to:", options: ["Go out with friends (Active)", "Stay home with a book (Reflective)"] },
     { id: 2, text: "In meetings, you are more likely to:", options: ["Speak up early (Expressive)", "Listen first then speak (Contained)"] },
@@ -14,6 +15,7 @@ const questions = [
 ];
 
 export default function MBTIPage() {
+    const { t, locale } = useLanguage();
     const [started, setStarted] = useState(false);
     const [currentQ, setCurrentQ] = useState(0);
     const [answers, setAnswers] = useState<any>({});
@@ -35,7 +37,7 @@ export default function MBTIPage() {
             const res = await fetch("/api/mbti", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ answers }),
+                body: JSON.stringify({ answers, locale }),
             });
             const json = await res.json();
             setResult(json);
@@ -50,8 +52,8 @@ export default function MBTIPage() {
         return (
             <div className="max-w-4xl mx-auto space-y-12">
                 <header className="text-center space-y-4">
-                    <h1 className="text-4xl font-bold text-aurum">Your Profile: {result.type}</h1>
-                    <p className="text-neutral-400">Step II Facet Analysis</p>
+                    <h1 className="text-4xl font-bold text-aurum">{t.mbti.profile}: {result.type}</h1>
+                    <p className="text-neutral-400">{t.mbti.title}</p>
                 </header>
 
                 <div className="grid md:grid-cols-2 gap-8">
@@ -74,7 +76,7 @@ export default function MBTIPage() {
                 </div>
 
                 <div className="bg-gradient-to-r from-nebula/30 to-black border border-aurum/20 p-6 rounded-2xl">
-                    <h3 className="text-lg font-semibold text-aurum mb-2">Mid-Zone Insights</h3>
+                    <h3 className="text-lg font-semibold text-aurum mb-2">{t.mbti.midZone}</h3>
                     <ul className="list-disc list-inside space-y-2 text-neutral-300">
                         {result.midZones.map((z: string, i: number) => <li key={i}>{z}</li>)}
                     </ul>
@@ -92,21 +94,21 @@ export default function MBTIPage() {
             {!started ? (
                 <div className="text-center space-y-6">
                     <Brain className="w-16 h-16 text-aurum mx-auto" />
-                    <h1 className="text-4xl font-bold">MBTI Step II Assessment</h1>
+                    <h1 className="text-4xl font-bold">{t.mbti.title}</h1>
                     <p className="text-neutral-400 max-w-lg mx-auto">
-                        Go beyond the 4 letters. Explore 20 sub-facets to understand the nuance of your personality.
+                        {t.mbti.desc}
                     </p>
                     <button
                         onClick={() => setStarted(true)}
                         className="px-8 py-3 bg-aurum text-black font-semibold rounded-full hover:opacity-90 transition-all text-lg"
                     >
-                        Start Assessment
+                        {t.mbti.start}
                     </button>
                 </div>
             ) : loading ? (
                 <div className="flex flex-col items-center gap-4">
                     <Loader2 className="w-10 h-10 animate-spin text-aurum" />
-                    <p className="text-neutral-400">Analyzing patterns...</p>
+                    <p className="text-neutral-400">{t.mbti.analyzing}</p>
                 </div>
             ) : (
                 <motion.div
@@ -116,8 +118,8 @@ export default function MBTIPage() {
                     className="w-full max-w-xl space-y-8"
                 >
                     <div className="flex justify-between text-sm text-neutral-500">
-                        <span>Question {currentQ + 1} of {questions.length}</span>
-                        <span>{Math.round(((currentQ) / questions.length) * 100)}% Complete</span>
+                        <span>{t.mbti.question} {currentQ + 1} / {questions.length}</span>
+                        <span>{Math.round(((currentQ) / questions.length) * 100)}% {t.mbti.complete}</span>
                     </div>
 
                     <h2 className="text-2xl font-medium text-center">{questions[currentQ].text}</h2>

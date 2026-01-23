@@ -1,5 +1,4 @@
 {
   "/page": "app/page.js",
-  "/api/oracle/route": "app/api/oracle/route.js",
-  "/oracle/page": "app/oracle/page.js"
+  "/api/oracle/route": "app/api/oracle/route.js"
 }
