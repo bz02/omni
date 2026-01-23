@@ -4,8 +4,12 @@ import { LanguageProvider } from "../contexts/LanguageContext";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Omni | New-Age Digital Mysticism",
-  description: "Astrology, Tarot, MBTI, and AI Oracle unified in one experience."
+  title: "Omni | Mystical AI Oracle",
+  description: "Astrology, Tarot, MBTI, and AI Oracle unified in one luminous experience.",
+  icons: {
+    icon: '/logo.png',
+    apple: '/logo.png',
+  }
 };
 
 export default function RootLayout({

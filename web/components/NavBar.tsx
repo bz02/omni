@@ -1,27 +1,30 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
-import { Sparkles } from "lucide-react";
 
 const navItems = [
     { name: "Home", href: "/" },
     { name: "Astrology", href: "/astrology" },
     { name: "Tarot", href: "/tarot" },
     { name: "MBTI", href: "/mbti" },
-    { name: "Oracle", href: "/oracle" },
 ];
 
 export function NavBar() {
     const pathname = usePathname();
 
     return (
-        <nav className="border-b border-neutral-800 bg-black/50 backdrop-blur-md sticky top-0 z-50">
-            <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-                <Link href="/" className="flex items-center gap-2 font-bold text-xl text-aurum tracking-wider">
-                    <Sparkles className="w-5 h-5" />
-                    OMNI
+        <nav className="border-b border-white/5 bg-space/70 backdrop-blur-xl sticky top-0 z-50 transition-all duration-300">
+            <div className="container mx-auto px-4 h-20 flex items-center justify-between">
+                <Link href="/" className="flex items-center gap-3 group">
+                    <div className="relative w-10 h-10 rounded-full overflow-hidden border border-rose-gold/20 shadow-glow group-hover:scale-110 transition-transform duration-500">
+                        <Image src="/logo.png" alt="OMNI" fill className="object-cover" />
+                    </div>
+                    <span className="font-display font-bold text-2xl tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-rose-gold to-aurum group-hover:to-starlight transition-all duration-500">
+                        OMNI
+                    </span>
                 </Link>
 
                 <div className="flex items-center gap-6">

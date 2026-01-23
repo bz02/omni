@@ -1,4 +1,7 @@
 {
+  "/astrology/page": "app/astrology/page.js",
   "/page": "app/page.js",
-  "/api/oracle/route": "app/api/oracle/route.js"
+  "/tarot/page": "app/tarot/page.js",
+  "/oracle/page": "app/oracle/page.js",
+  "/mbti/page": "app/mbti/page.js"
 }

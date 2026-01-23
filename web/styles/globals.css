@@ -10,9 +10,11 @@
 
 body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background: radial-gradient(circle at 20% 20%, rgba(45, 0, 75, 0.4), transparent 25%),
-              radial-gradient(circle at 80% 0%, rgba(212, 175, 55, 0.2), transparent 20%),
-              #0A0A0A;
+  background: 
+    radial-gradient(circle at 10% 20%, rgba(224, 191, 184, 0.15), transparent 40%), /* rose-gold hint */
+    radial-gradient(circle at 90% 10%, rgba(212, 175, 55, 0.1), transparent 30%), /* aurum hint */
+    radial-gradient(circle at 50% 50%, rgba(45, 0, 75, 0.3), transparent 60%), /* nebula hint */
+    #080510;
   min-height: 100vh;
 }
 
