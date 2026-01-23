@@ -159,7 +159,7 @@ export default function TarotPage() {
                                                     <div className="text-xs font-bold font-serif uppercase tracking-widest mt-auto">
                                                         {card.name}
                                                     </div>
-                                                    {card.isReversed && <div className="text-[10px] text-red-600 font-bold uppercase">Reversed</div>}
+                                                    {card.isReversed && <div className="text-[10px] text-red-600 font-bold uppercase">{t.tarot.reversed}</div>}
                                                 </div>
                                             </motion.div>
                                         </div>

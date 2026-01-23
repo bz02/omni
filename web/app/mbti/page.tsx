@@ -6,17 +6,11 @@ import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Image from "next/image";
 
-// In real app, we would have multilingual questions in the API or translation file.
-// For now, we will just translate the UI frame.
-const questions = [
-    { id: 1, text: "When you have a free evening, do you prefer to:", options: ["Go out with friends (Active)", "Stay home with a book (Reflective)"] },
-    { id: 2, text: "In meetings, you are more likely to:", options: ["Speak up early (Expressive)", "Listen first then speak (Contained)"] },
-    { id: 3, text: "You value:", options: ["Logic and consistency (Logical)", "Harmony and compassion (Empathetic)"] },
-    { id: 4, text: "You prefer to have things:", options: ["Settled and decided (Scheduled)", "Open to change (Spontaneous)"] },
-];
+
 
 export default function MBTIPage() {
     const { t, locale } = useLanguage();
+    const questions = t.mbti.questions;
     const [started, setStarted] = useState(false);
     const [currentQ, setCurrentQ] = useState(0);
     const [answers, setAnswers] = useState<any>({});

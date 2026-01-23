@@ -1825,6 +1825,10 @@ body {
   border-color: rgb(82 82 82 / var(--tw-border-opacity));
 }
 
+.hover\:border-white\/50:hover {
+  border-color: rgb(255 255 255 / 0.5);
+}
+
 .hover\:bg-neutral-700:hover {
   --tw-bg-opacity: 1;
   background-color: rgb(64 64 64 / var(--tw-bg-opacity));

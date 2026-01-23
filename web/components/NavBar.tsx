@@ -4,16 +4,18 @@ import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
-
-const navItems = [
-    { name: "Home", href: "/" },
-    { name: "Astrology", href: "/astrology" },
-    { name: "Tarot", href: "/tarot" },
-    { name: "MBTI", href: "/mbti" },
-];
+import { useLanguage } from "../contexts/LanguageContext";
 
 export function NavBar() {
     const pathname = usePathname();
+    const { t, locale, setLocale } = useLanguage();
+
+    const navItems = [
+        { name: t.nav.home, href: "/" },
+        { name: t.nav.astrology, href: "/astrology" },
+        { name: t.nav.tarot, href: "/tarot" },
+        { name: t.nav.mbti, href: "/mbti" },
+    ];
 
     return (
         <nav className="border-b border-white/5 bg-space/70 backdrop-blur-xl sticky top-0 z-50 transition-all duration-300">
@@ -40,6 +42,12 @@ export function NavBar() {
                             {item.name}
                         </Link>
                     ))}
+                    <button
+                        onClick={() => setLocale(locale === 'en' ? 'zh' : 'en')}
+                        className="px-3 py-1 rounded border border-neutral-700 text-xs text-neutral-400 hover:text-white hover:border-white/50 transition-all uppercase tracking-wider"
+                    >
+                        {locale === 'en' ? 'ZH' : 'EN'}
+                    </button>
                 </div>
             </div>
         </nav>

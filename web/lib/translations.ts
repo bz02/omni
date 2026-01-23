@@ -8,6 +8,7 @@ export const translations = {
             tarot: "Tarot",
             mbti: "MBTI",
             oracle: "Oracle",
+
             tips: "Tips",
         },
         home: {
@@ -33,7 +34,12 @@ export const translations = {
                 lat: "Latitude",
                 long: "Longitude",
                 calculate: "Calculate Natal Chart",
+
                 calculating: "Calculating...",
+                placeholders: {
+                    lat: "e.g. 40.71",
+                    long: "e.g. -74.00"
+                }
             },
             results: {
                 planets: "Planetary Positions",
@@ -56,7 +62,8 @@ export const translations = {
             },
             draw: "Shuffle & Draw Cards",
             drawing: "Shuffling...",
-            interpretation: "Oracle Interpretation"
+            interpretation: "Oracle Interpretation",
+            reversed: "Reversed",
         },
         mbti: {
             title: "MBTI Step II Assessment",
@@ -66,7 +73,14 @@ export const translations = {
             question: "Question",
             complete: "Complete",
             midZone: "Mid-Zone Insights",
-            profile: "Your Profile"
+
+            profile: "Your Profile",
+            questions: [
+                { id: 1, text: "When you have a free evening, do you prefer to:", options: ["Go out with friends (Active)", "Stay home with a book (Reflective)"] },
+                { id: 2, text: "In meetings, you are more likely to:", options: ["Speak up early (Expressive)", "Listen first then speak (Contained)"] },
+                { id: 3, text: "You value:", options: ["Logic and consistency (Logical)", "Harmony and compassion (Empathetic)"] },
+                { id: 4, text: "You prefer to have things:", options: ["Settled and decided (Scheduled)", "Open to change (Spontaneous)"] },
+            ]
         },
         oracle: {
             title: "Omni Oracle",
@@ -98,6 +112,7 @@ export const translations = {
             tarot: "塔罗",
             mbti: "MBTI",
             oracle: "神谕",
+
             tips: "打赏",
         },
         home: {
@@ -123,7 +138,12 @@ export const translations = {
                 lat: "纬度",
                 long: "经度",
                 calculate: "计算本命盘",
+
                 calculating: "计算中...",
+                placeholders: {
+                    lat: "例如 40.71",
+                    long: "例如 -74.00"
+                }
             },
             results: {
                 planets: "行星位置",
@@ -146,7 +166,8 @@ export const translations = {
             },
             draw: "洗牌并抽牌",
             drawing: "洗牌中...",
-            interpretation: "神谕解读"
+            interpretation: "神谕解读",
+            reversed: "逆位",
         },
         mbti: {
             title: "MBTI Step II 测评",
@@ -156,7 +177,14 @@ export const translations = {
             question: "问题",
             complete: "完成",
             midZone: "中间区域洞察",
-            profile: "你的画像"
+
+            profile: "你的画像",
+            questions: [
+                { id: 1, text: "当您有一个空闲的晚上时，您更倾向于：", options: ["和朋友出去 (活跃)", "在家看书 (反思)"] },
+                { id: 2, text: "在会议中，您更有可能：", options: ["尽早发言 (表达)", "先听后说 (内敛)"] },
+                { id: 3, text: "您更看重：", options: ["逻辑和一致性 (逻辑)", "和谐与同情 (共情)"] },
+                { id: 4, text: "您更喜欢事情：", options: ["确定并决定 (计划)", "保持开放 (自发)"] },
+            ]
         },
         oracle: {
             title: "Omni 神谕",

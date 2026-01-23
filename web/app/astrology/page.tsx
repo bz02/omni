@@ -90,7 +90,7 @@ export default function AstrologyPage() {
                                     <label className="text-sm text-neutral-400">{t.astrology.form.lat}</label>
                                     <input
                                         name="lat"
-                                        placeholder="e.g. 40.71"
+                                        placeholder={t.astrology.form.placeholders.lat}
                                         className="w-full bg-black/40 border border-neutral-800 rounded-lg px-4 py-2 focus:border-aurum/50 outline-none transition-colors"
                                     />
                                 </div>
@@ -98,7 +98,7 @@ export default function AstrologyPage() {
                                     <label className="text-sm text-neutral-400">{t.astrology.form.long}</label>
                                     <input
                                         name="long"
-                                        placeholder="e.g. -74.00"
+                                        placeholder={t.astrology.form.placeholders.long}
                                         className="w-full bg-black/40 border border-neutral-800 rounded-lg px-4 py-2 focus:border-aurum/50 outline-none transition-colors"
                                     />
                                 </div>
