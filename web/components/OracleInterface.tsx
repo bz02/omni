@@ -27,6 +27,15 @@ export default function OracleInterface() {
         }
     }, [messages, loading]);
 
+    // Generate or retrieve threadId
+    useEffect(() => {
+        let tid = localStorage.getItem('oracle_thread_id');
+        if (!tid) {
+            tid = crypto.randomUUID();
+            localStorage.setItem('oracle_thread_id', tid);
+        }
+    }, []);
+
     const handleSend = async () => {
         if (!input.trim() || loading) return;
 
@@ -35,11 +44,13 @@ export default function OracleInterface() {
         setInput("");
         setLoading(true);
 
+        const threadId = localStorage.getItem('oracle_thread_id');
+
         try {
             const res = await fetch('/api/oracle', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: userMsg.content, persona, locale }),
+                body: JSON.stringify({ message: userMsg.content, persona, locale, threadId }),
             });
 
             const data = await res.json();
@@ -85,8 +96,8 @@ export default function OracleInterface() {
                             key={p.id}
                             onClick={() => setPersona(p.id as Persona)}
                             className={`px-4 py-1.5 rounded-full text-sm transition-all duration-500 ${persona === p.id
-                                    ? `bg-gradient-to-r from-mystic to-nebula text-white shadow-lg border border-white/20`
-                                    : 'text-lavender/60 hover:text-white'
+                                ? `bg-gradient-to-r from-mystic to-nebula text-white shadow-lg border border-white/20`
+                                : 'text-lavender/60 hover:text-white'
                                 }`}
                         >
                             {p.name}
@@ -119,8 +130,8 @@ export default function OracleInterface() {
                             )}
 
                             <div className={`max-w-[80%] p-5 rounded-2xl backdrop-blur-sm ${m.role === 'user'
-                                    ? 'bg-rose-gold/10 text-starlight border border-rose-gold/20 rounded-tr-sm shadow-sm'
-                                    : 'bg-white/5 text-starlight/90 border border-white/5 rounded-tl-sm shadow-sm'
+                                ? 'bg-rose-gold/10 text-starlight border border-rose-gold/20 rounded-tr-sm shadow-sm'
+                                : 'bg-white/5 text-starlight/90 border border-white/5 rounded-tl-sm shadow-sm'
                                 }`}>
                                 <p className="leading-relaxed whitespace-pre-wrap font-light tracking-wide">{m.content}</p>
                             </div>
@@ -140,10 +151,10 @@ export default function OracleInterface() {
                         animate={{ opacity: 1 }}
                         className="flex gap-4"
                     >
-                        <div className="w-8 h-8 rounded-full flex items-center justify-center bg-mystic border border-white/10">
+                        <div className="w-8 h-8 rounded-full flex items-center justify-center bg-white border border-rose-gold/20">
                             <Sparkles className="w-4 h-4 text-rose-gold animate-pulse" />
                         </div>
-                        <div className="bg-white/5 p-4 rounded-2xl rounded-tl-sm flex gap-2 items-center border border-white/5">
+                        <div className="bg-white/60 p-4 rounded-2xl rounded-tl-sm flex gap-2 items-center border border-white/50">
                             <div className="w-2 h-2 bg-rose-gold/50 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                             <div className="w-2 h-2 bg-rose-gold/50 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
                             <div className="w-2 h-2 bg-rose-gold/50 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
@@ -153,7 +164,7 @@ export default function OracleInterface() {
             </div>
 
             {/* Input Area */}
-            <div className="p-4 border-t border-white/5 bg-space/40 backdrop-blur-xl z-10">
+            <div className="p-4 border-t border-rose-gold/10 bg-white/40 backdrop-blur-xl z-10">
                 <form
                     onSubmit={(e) => { e.preventDefault(); handleSend(); }}
                     className="flex gap-4 items-center relative"
@@ -163,13 +174,13 @@ export default function OracleInterface() {
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         placeholder={t.oracle.placeholder}
-                        className="flex-1 bg-white/5 border border-white/10 rounded-full px-6 py-4 focus:outline-none focus:border-rose-gold/40 focus:bg-white/10 transition-all text-starlight placeholder-lavender/30 font-light"
+                        className="flex-1 bg-white/60 border border-white/50 rounded-full px-6 py-4 focus:outline-none focus:border-rose-gold/40 focus:bg-white/80 transition-all text-charcoal placeholder-charcoal/40 font-medium shadow-sm"
                         disabled={loading}
                     />
                     <button
                         type="submit"
                         disabled={!input.trim() || loading}
-                        className="p-4 rounded-full bg-gradient-to-r from-rose-gold to-aurum text-space font-bold hover:shadow-glow hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                        className="p-4 rounded-full bg-gradient-to-r from-rose-gold to-aurum text-white font-bold hover:shadow-soft-glow hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md"
                     >
                         <Send className="w-5 h-5" />
                     </button>

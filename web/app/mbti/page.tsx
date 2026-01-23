@@ -47,49 +47,51 @@ export default function MBTIPage() {
         return (
             <div className="relative min-h-screen">
                 {/* Background Image */}
-                <div className="fixed inset-0 z-0 pointer-events-none opacity-20">
+                <div className="fixed inset-0 z-0 pointer-events-none opacity-10 mix-blend-multiply">
                     <Image
                         src="/assets/Gemini_Generated_Image_4n1yx94n1yx94n1y.png"
                         alt="MBTI Background"
                         fill
                         className="object-cover"
                     />
-                    <div className="absolute inset-0 bg-space/85 backdrop-blur-[2px]" />
                 </div>
 
                 <div className="relative z-10 max-w-4xl mx-auto space-y-12 py-8">
                     <header className="text-center space-y-4">
-                        <h1 className="text-4xl font-bold text-aurum">{t.mbti.profile}: {result.type}</h1>
-                        <p className="text-neutral-400">{t.mbti.title}</p>
+                        <h1 className="text-4xl font-bold text-charcoal">{t.mbti.profile}: {result.type}</h1>
+                        <p className="text-charcoal/60 font-medium">{t.mbti.title}</p>
                     </header>
 
                     <div className="grid md:grid-cols-2 gap-8">
                         {Object.entries(result.facets).map(([key, val]: [string, any]) => (
-                            <div key={key} className="bg-neutral-900/50 border border-neutral-800 p-6 rounded-2xl">
-                                <div className="flex justify-between items-center mb-4">
-                                    <span className="text-xl font-bold text-white">{key}</span>
-                                    <span className="text-aurum font-medium">{val.label} ({val.score}%)</span>
+                            <div key={key} className="bg-white/70 border border-white/60 p-6 rounded-2xl relative overflow-hidden group shadow-sm hover:shadow-md transition-all">
+                                <div className="absolute top-0 right-0 w-32 h-32 opacity-20 group-hover:opacity-30 transition-opacity mix-blend-multiply">
+                                    <Image src={val.image} alt={val.label} fill className="object-cover" />
                                 </div>
-                                <div className="w-full bg-neutral-800 h-2 rounded-full overflow-hidden mb-4">
-                                    <div className="bg-aurum h-full transition-all duration-1000" style={{ width: `${val.score}%` }} />
+                                <div className="flex justify-between items-center mb-4 relative z-10">
+                                    <span className="text-xl font-bold text-charcoal">{key}</span>
+                                    <span className="text-aurum font-bold">{val.label} ({val.score}%)</span>
                                 </div>
-                                <div className="flex flex-wrap gap-2">
+                                <div className="w-full bg-charcoal/10 h-2 rounded-full overflow-hidden mb-4 relative z-10">
+                                    <div className="bg-gradient-to-r from-rose-gold to-aurum h-full transition-all duration-1000" style={{ width: `${val.score}%` }} />
+                                </div>
+                                <div className="flex flex-wrap gap-2 relative z-10">
                                     {val.facets.map((f: string) => (
-                                        <span key={f} className="text-xs bg-neutral-800 px-2 py-1 rounded text-neutral-400">{f}</span>
+                                        <span key={f} className="text-xs bg-white/80 border border-rose-gold/20 px-2 py-1 rounded text-charcoal/70 font-medium">{f}</span>
                                     ))}
                                 </div>
                             </div>
                         ))}
                     </div>
 
-                    <div className="bg-gradient-to-r from-nebula/30 to-black border border-aurum/20 p-6 rounded-2xl">
-                        <h3 className="text-lg font-semibold text-aurum mb-2">{t.mbti.midZone}</h3>
-                        <ul className="list-disc list-inside space-y-2 text-neutral-300">
+                    <div className="bg-gradient-to-tr from-white/60 to-rose-gold/10 border border-white/50 p-6 rounded-2xl shadow-sm">
+                        <h3 className="text-lg font-bold text-charcoal mb-2">{t.mbti.midZone}</h3>
+                        <ul className="list-disc list-inside space-y-2 text-charcoal/80">
                             {result.midZones.map((z: string, i: number) => <li key={i}>{z}</li>)}
                         </ul>
                     </div>
 
-                    <div className="text-center text-sm text-neutral-500">
+                    <div className="text-center text-sm text-charcoal/50 font-medium">
                         {result.evolution}
                     </div>
                 </div>
@@ -100,58 +102,57 @@ export default function MBTIPage() {
     return (
         <div className="relative min-h-screen flex flex-col">
             {/* Background Image */}
-            <div className="fixed inset-0 z-0 pointer-events-none opacity-20">
+            <div className="fixed inset-0 z-0 pointer-events-none opacity-10 mix-blend-multiply">
                 <Image
                     src="/assets/Gemini_Generated_Image_4n1yx94n1yx94n1y.png"
                     alt="MBTI Background"
                     fill
                     className="object-cover"
                 />
-                <div className="absolute inset-0 bg-space/85 backdrop-blur-[2px]" />
             </div>
 
             <div className="relative z-10 max-w-3xl mx-auto min-h-[60vh] flex flex-col items-center justify-center flex-1">
                 {!started ? (
                     <div className="text-center space-y-6">
-                        <Brain className="w-16 h-16 text-aurum mx-auto" />
-                        <h1 className="text-4xl font-bold">{t.mbti.title}</h1>
-                        <p className="text-neutral-400 max-w-lg mx-auto">
+                        <Brain className="w-16 h-16 text-rose-gold mx-auto" />
+                        <h1 className="text-4xl font-bold text-charcoal">{t.mbti.title}</h1>
+                        <p className="text-charcoal/70 max-w-lg mx-auto font-medium">
                             {t.mbti.desc}
                         </p>
                         <button
                             onClick={() => setStarted(true)}
-                            className="px-8 py-3 bg-aurum text-black font-semibold rounded-full hover:opacity-90 transition-all text-lg"
+                            className="px-8 py-3 bg-gradient-to-r from-rose-gold to-aurum text-white font-semibold rounded-full hover:opacity-90 transition-all text-lg shadow-soft-glow"
                         >
                             {t.mbti.start}
                         </button>
                     </div>
                 ) : loading ? (
                     <div className="flex flex-col items-center gap-4">
-                        <Loader2 className="w-10 h-10 animate-spin text-aurum" />
-                        <p className="text-neutral-400">{t.mbti.analyzing}</p>
+                        <Loader2 className="w-10 h-10 animate-spin text-rose-gold" />
+                        <p className="text-charcoal/70 font-medium">{t.mbti.analyzing}</p>
                     </div>
                 ) : (
                     <motion.div
                         key={currentQ}
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
-                        className="w-full max-w-xl space-y-8"
+                        className="w-full max-w-xl space-y-8 bg-white/50 backdrop-blur-xl p-8 rounded-3xl border border-white/60 shadow-sm"
                     >
-                        <div className="flex justify-between text-sm text-neutral-500">
+                        <div className="flex justify-between text-sm text-charcoal/60 font-medium">
                             <span>{t.mbti.question} {currentQ + 1} / {questions.length}</span>
                             <span>{Math.round(((currentQ) / questions.length) * 100)}% {t.mbti.complete}</span>
                         </div>
 
-                        <h2 className="text-2xl font-medium text-center">{questions[currentQ].text}</h2>
+                        <h2 className="text-2xl font-semibold text-center text-charcoal">{questions[currentQ].text}</h2>
 
                         <div className="space-y-4">
                             {questions[currentQ].options.map((opt, idx) => (
                                 <button
                                     key={idx}
                                     onClick={() => handleAnswer(idx)}
-                                    className="w-full text-left p-4 rounded-xl border border-neutral-800 hover:border-aurum/50 hover:bg-neutral-900/50 transition-all group flex justify-between items-center"
+                                    className="w-full text-left p-4 rounded-xl border border-rose-gold/20 bg-white/80 hover:border-aurum/50 hover:bg-white transition-all group flex justify-between items-center shadow-sm"
                                 >
-                                    <span className="text-neutral-300 group-hover:text-white transition-colors">{opt}</span>
+                                    <span className="text-charcoal/90 group-hover:text-charcoal font-medium transition-colors">{opt}</span>
                                     <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 text-aurum transition-opacity" />
                                 </button>
                             ))}

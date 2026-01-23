@@ -5,6 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import { useLanguage } from "../contexts/LanguageContext";
+import LoginButton from "./LoginButton";
 
 export function NavBar() {
     const pathname = usePathname();
@@ -18,13 +19,13 @@ export function NavBar() {
     ];
 
     return (
-        <nav className="border-b border-white/5 bg-space/70 backdrop-blur-xl sticky top-0 z-50 transition-all duration-300">
+        <nav className="border-b border-rose-gold/20 bg-white/70 backdrop-blur-xl sticky top-0 z-50 transition-all duration-300 shadow-sm">
             <div className="container mx-auto px-4 h-20 flex items-center justify-between">
                 <Link href="/" className="flex items-center gap-3 group">
-                    <div className="relative w-10 h-10 rounded-full overflow-hidden border border-rose-gold/20 shadow-glow group-hover:scale-110 transition-transform duration-500">
+                    <div className="relative w-10 h-10 rounded-full overflow-hidden border border-rose-gold/50 shadow-soft-glow group-hover:scale-110 transition-transform duration-500">
                         <Image src="/logo.png" alt="OMNI" fill className="object-cover" />
                     </div>
-                    <span className="font-display font-bold text-2xl tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-rose-gold to-aurum group-hover:to-starlight transition-all duration-500">
+                    <span className="font-display font-bold text-2xl tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-aurum to-lavender group-hover:to-rose-gold transition-all duration-500">
                         OMNI
                     </span>
                 </Link>
@@ -36,7 +37,7 @@ export function NavBar() {
                             href={item.href}
                             className={clsx(
                                 "text-sm font-medium transition-colors hover:text-aurum",
-                                pathname === item.href ? "text-aurum" : "text-neutral-400"
+                                pathname === item.href ? "text-aurum font-bold" : "text-charcoal/70"
                             )}
                         >
                             {item.name}
@@ -44,10 +45,11 @@ export function NavBar() {
                     ))}
                     <button
                         onClick={() => setLocale(locale === 'en' ? 'zh' : 'en')}
-                        className="px-3 py-1 rounded border border-neutral-700 text-xs text-neutral-400 hover:text-white hover:border-white/50 transition-all uppercase tracking-wider"
+                        className="px-3 py-1 rounded border border-rose-gold/30 text-xs text-charcoal/60 hover:text-charcoal hover:border-aurum/50 transition-all uppercase tracking-wider"
                     >
                         {locale === 'en' ? 'ZH' : 'EN'}
                     </button>
+                    <LoginButton />
                 </div>
             </div>
         </nav>

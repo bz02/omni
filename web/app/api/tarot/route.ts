@@ -70,9 +70,18 @@ export async function POST(request: Request) {
     if (spreadType === 'Celtic Cross') drawCount = 10;
     else if (spreadType === 'Decision') drawCount = 2;
 
-    const drawnCards = shuffled.slice(0, drawCount).map(card => ({
+    // Available images (using the ones we identified)
+    const cardImages = [
+      "/assets/Gemini_Generated_Image_4n1yx94n1yx94n1y.png",
+      "/assets/Gemini_Generated_Image_5lv2xh5lv2xh5lv2.png",
+      "/assets/Gemini_Generated_Image_ae247sae247sae24.png",
+      "/assets/Gemini_Generated_Image_d51vljd51vljd51v.png"
+    ];
+
+    const drawnCards = shuffled.slice(0, drawCount).map((card, index) => ({
       ...card,
       isReversed: Math.random() > 0.8, // 20% chance of reversal
+      image: cardImages[index % cardImages.length] // Cycle through available images
     }));
 
     // Mock AI interpretation

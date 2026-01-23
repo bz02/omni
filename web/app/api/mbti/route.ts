@@ -9,15 +9,15 @@ export async function POST(request: Request) {
     const type = "INTJ";
 
     const facets = isZh ? {
-      EI: { score: 75, label: "内向", facets: ["接收", "内敛", "亲密", "反思", "安静"] },
-      SN: { score: 60, label: "直觉", facets: ["抽象", "想象", "概念", "理论", "原创"] },
-      TF: { score: 85, label: "思考", facets: ["逻辑", "理性", "质疑", "批判", "坚强"] },
-      JP: { score: 55, label: "判断", facets: ["系统", "计划", "提前启动", "日程化", "条理"] }
+      EI: { score: 75, label: "内向", facets: ["接收", "内敛", "亲密", "反思", "安静"], image: "/assets/mbti_intuition_1769151546183.png" },
+      SN: { score: 60, label: "直觉", facets: ["抽象", "想象", "概念", "理论", "原创"], image: "/assets/mbti_intuition_1769151546183.png" },
+      TF: { score: 85, label: "思考", facets: ["逻辑", "理性", "质疑", "批判", "坚强"], image: "/assets/mbti_thinking_1769151561204.png" },
+      JP: { score: 55, label: "判断", facets: ["系统", "计划", "提前启动", "日程化", "条理"], image: "/assets/mbti_thinking_1769151561204.png" }
     } : {
-      EI: { score: 75, label: "Introverted", facets: ["Receiving", "Contained", "Intimate", "Reflective", "Quiet"] },
-      SN: { score: 60, label: "Intuitive", facets: ["Abstract", "Imaginative", "Conceptual", "Theoretical", "Original"] },
-      TF: { score: 85, label: "Thinking", facets: ["Logical", "Reasonable", "Questioning", "Critical", "Tough"] },
-      JP: { score: 55, label: "Judging", facets: ["Systematic", "Planful", "Early-Starting", "Scheduled", "Methodical"] }
+      EI: { score: 75, label: "Introverted", facets: ["Receiving", "Contained", "Intimate", "Reflective", "Quiet"], image: "/assets/mbti_intuition_1769151546183.png" },
+      SN: { score: 60, label: "Intuitive", facets: ["Abstract", "Imaginative", "Conceptual", "Theoretical", "Original"], image: "/assets/mbti_intuition_1769151546183.png" },
+      TF: { score: 85, label: "Thinking", facets: ["Logical", "Reasonable", "Questioning", "Critical", "Tough"], image: "/assets/mbti_thinking_1769151561204.png" },
+      JP: { score: 55, label: "Judging", facets: ["Systematic", "Planful", "Early-Starting", "Scheduled", "Methodical"], image: "/assets/mbti_thinking_1769151561204.png" }
     };
 
     const midZones = isZh

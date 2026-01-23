@@ -56,50 +56,49 @@ export default function TarotPage() {
     return (
         <div className="relative min-h-screen">
             {/* Background Image */}
-            <div className="fixed inset-0 z-0 pointer-events-none opacity-15">
+            <div className="fixed inset-0 z-0 pointer-events-none opacity-10 mix-blend-multiply">
                 <Image
                     src="/assets/Gemini_Generated_Image_d51vljd51vljd51v.png"
                     alt="Tarot Background"
                     fill
                     className="object-cover"
                 />
-                <div className="absolute inset-0 bg-space/90 backdrop-blur-[1px]" />
             </div>
 
             <div className="relative z-10 max-w-5xl mx-auto space-y-12 py-8">
                 <header className="space-y-4 text-center">
-                    <h1 className="text-4xl font-bold flex items-center justify-center gap-3">
+                    <h1 className="text-4xl font-bold flex items-center justify-center gap-3 text-charcoal">
                         <Compass className="text-aurum w-8 h-8" />
                         {t.tarot.title}
                     </h1>
-                    <p className="text-neutral-400 max-w-xl mx-auto">
+                    <p className="text-charcoal/60 max-w-xl mx-auto">
                         {t.tarot.desc}
                     </p>
                 </header>
 
                 <div className="max-w-2xl mx-auto space-y-6">
                     <div className="space-y-2">
-                        <label className="text-sm text-neutral-400">{t.tarot.questionLabel}</label>
+                        <label className="text-sm text-charcoal/70 font-medium">{t.tarot.questionLabel}</label>
                         <input
                             value={question}
                             onChange={(e) => setQuestion(e.target.value)}
                             placeholder={t.tarot.questionPlaceholder}
-                            className="w-full bg-neutral-900 border border-neutral-800 rounded-xl px-4 py-3 focus:border-aurum/50 outline-none transition-colors"
+                            className="w-full bg-white/60 border border-white/50 rounded-xl px-4 py-3 focus:border-aurum/50 outline-none transition-colors text-charcoal placeholder-charcoal/40 shadow-sm font-medium"
                         />
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm text-neutral-400">{t.tarot.selectSpread}</label>
+                        <label className="text-sm text-charcoal/70 font-medium">{t.tarot.selectSpread}</label>
                         <div className="flex flex-wrap gap-2">
                             {spreads.map((spread) => (
                                 <button
                                     key={spread.id}
                                     onClick={() => setSelectedSpread(spread)}
                                     className={clsx(
-                                        "px-4 py-2 rounded-full text-sm font-medium transition-all border",
+                                        "px-4 py-2 rounded-full text-sm font-medium transition-all border shadow-sm",
                                         selectedSpread.id === spread.id
-                                            ? "bg-aurum text-black border-aurum"
-                                            : "bg-neutral-900 text-neutral-400 border-neutral-800 hover:border-neutral-600"
+                                            ? "bg-gradient-to-r from-rose-gold to-aurum text-white border-transparent"
+                                            : "bg-white/60 text-charcoal/70 border-white/50 hover:border-aurum/30 hover:bg-white/80"
                                     )}
                                 >
                                     {spread.name}
@@ -111,9 +110,9 @@ export default function TarotPage() {
                     <button
                         onClick={handleDraw}
                         disabled={!question || loading}
-                        className="w-full bg-gradient-to-r from-nebula to-neutral-900 border border-aurum/30 text-aurum font-semibold py-4 rounded-xl hover:opacity-90 transition-all shadow-glow disabled:opacity-50 flex items-center justify-center gap-2"
+                        className="w-full bg-gradient-to-r from-rose-gold to-aurum border border-white/20 text-white font-bold py-4 rounded-xl hover:shadow-soft-glow transition-all disabled:opacity-50 flex items-center justify-center gap-2 shadow-md hover:scale-[1.01] active:scale-[0.99]"
                     >
-                        {loading ? <Loader2 className="animate-spin" /> : t.tarot.draw}
+                        {loading ? <Loader2 className="animate-spin text-white" /> : t.tarot.draw}
                     </button>
                 </div>
 
@@ -151,10 +150,12 @@ export default function TarotPage() {
                                                     style={{ transform: 'rotateY(180deg)' }}
                                                 >
                                                     <div className={clsx("w-full h-3/4 bg-neutral-200 mb-2 rounded overflow-hidden relative", card.isReversed && "rotate-180")}>
-                                                        {/* Placeholder for card image */}
-                                                        <div className="absolute inset-0 flex items-center justify-center text-xs text-neutral-500 font-serif opacity-20">
-                                                            [Image]
-                                                        </div>
+                                                        <Image
+                                                            src={card.image}
+                                                            alt={card.name}
+                                                            fill
+                                                            className="object-cover"
+                                                        />
                                                     </div>
                                                     <div className="text-xs font-bold font-serif uppercase tracking-widest mt-auto">
                                                         {card.name}
@@ -171,10 +172,10 @@ export default function TarotPage() {
                                 <motion.div
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className="max-w-3xl mx-auto bg-neutral-900/50 border border-neutral-800 rounded-2xl p-8"
+                                    className="max-w-3xl mx-auto bg-white/70 border border-white/60 rounded-2xl p-8 shadow-sm"
                                 >
                                     <h3 className="text-xl font-semibold text-aurum mb-4">{t.tarot.interpretation}</h3>
-                                    <div className="prose prose-invert max-w-none text-neutral-300 whitespace-pre-line leading-relaxed">
+                                    <div className="prose prose-p:text-charcoal/80 max-w-none whitespace-pre-line leading-relaxed">
                                         {result.interpretation}
                                     </div>
                                 </motion.div>
