@@ -27,6 +27,28 @@ export async function POST(request: Request) {
     // Simulate delay
     await new Promise(resolve => setTimeout(resolve, 1000));
 
+    // --- Database Integration ---
+    try {
+      const { getServerSession } = await import("next-auth");
+      const { authOptions } = await import("../auth/[...nextauth]/route");
+      const session = await getServerSession(authOptions);
+
+      if (session?.user?.id) {
+        const { prisma } = await import("@/lib/prisma");
+        await prisma.reading.create({
+          data: {
+            type: "MBTI",
+            data: { answers, facets, type },
+            result: type,
+            userId: session.user.id
+          }
+        });
+      }
+    } catch (dbError) {
+      console.error("Failed to save MBTI result to DB:", dbError);
+    }
+    // ---------------------------
+
     return NextResponse.json({
       type,
       facets,

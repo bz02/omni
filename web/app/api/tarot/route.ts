@@ -104,6 +104,29 @@ export async function POST(request: Request) {
     // Simulate thinking delay
     await new Promise(resolve => setTimeout(resolve, 1500));
 
+    // --- Database Integration ---
+    try {
+      const { getServerSession } = await import("next-auth");
+      const { authOptions } = await import("../auth/[...nextauth]/route");
+      const session = await getServerSession(authOptions);
+
+      if (session?.user?.id) {
+        const { prisma } = await import("@/lib/prisma"); // Dynamic import to avoid circular dep issues if any
+        await prisma.reading.create({
+          data: {
+            type: "TAROT",
+            data: { cards: drawnCards, spreadType, question },
+            result: interpretation,
+            userId: session.user.id
+          }
+        });
+      }
+    } catch (dbError) {
+      console.error("Failed to save reading to DB:", dbError);
+      // We don't fail the request if DB fails, just log it
+    }
+    // ---------------------------
+
     return NextResponse.json({
       cards: drawnCards,
       interpretation
