@@ -77,7 +77,7 @@ export default function PaymentsPage() {
                 </p>
             </header>
 
-            <div className="bg-neutral-900/50 border border-neutral-800 rounded-2xl p-8 space-y-8">
+            <div className="bg-neutral-900/80 border border-neutral-800 rounded-2xl p-8 space-y-8 backdrop-blur-sm">
                 <div className="space-y-4">
                     <label className="text-sm font-medium text-neutral-300">{t.payments.select}</label>
                     <div className="grid grid-cols-3 gap-3">
@@ -113,10 +113,10 @@ export default function PaymentsPage() {
 
                 <div className="space-y-4">
                     <label className="text-sm font-medium text-neutral-300">{t.payments.method}</label>
-                    <div className="p-4 border border-neutral-800 rounded-xl bg-black/20 flex items-center gap-3 text-neutral-400">
-                        <CreditCard className="w-5 h-5" />
-                        <span>Card ending in 4242 (Mock)</span>
-                        <span className="ml-auto text-xs bg-neutral-800 px-2 py-1 rounded">Default</span>
+                    <div className="p-4 border border-neutral-800 rounded-xl bg-black/40 flex items-center gap-3 text-neutral-200">
+                        <CreditCard className="w-5 h-5 text-aurum" />
+                        <span>Credit / Debit Card (Stripe Secure Checkout)</span>
+                        <span className="ml-auto text-xs bg-aurum/10 text-aurum border border-aurum/20 px-2 py-1 rounded">Redirects to Stripe</span>
                     </div>
                 </div>
 

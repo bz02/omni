@@ -1,18 +1,1 @@
-{
-  "/_not-found/page": "app/_not-found/page.js",
-  "/api/astrology/route": "app/api/astrology/route.js",
-  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
-  "/api/mbti/route": "app/api/mbti/route.js",
-  "/api/oracle/route": "app/api/oracle/route.js",
-  "/api/payments/route": "app/api/payments/route.js",
-  "/api/tarot/route": "app/api/tarot/route.js",
-  "/astrology/page": "app/astrology/page.js",
-  "/login/page": "app/login/page.js",
-  "/page": "app/page.js",
-  "/payments/cancel/page": "app/payments/cancel/page.js",
-  "/payments/page": "app/payments/page.js",
-  "/payments/success/page": "app/payments/success/page.js",
-  "/mbti/page": "app/mbti/page.js",
-  "/oracle/page": "app/oracle/page.js",
-  "/tarot/page": "app/tarot/page.js"
-}
+{}
