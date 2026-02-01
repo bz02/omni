@@ -4,10 +4,10 @@ import { useSearchParams } from "next/navigation";
 import { CheckCircle2, Heart } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import canvasConfetti from 'canvas-confetti';
 
-export default function PaymentSuccessPage() {
+function SuccessContent() {
     const searchParams = useSearchParams();
     const sessionId = searchParams.get("session_id");
 
@@ -46,5 +46,17 @@ export default function PaymentSuccessPage() {
                 </Link>
             </div>
         </div>
+    );
+}
+
+export default function PaymentSuccessPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-[60vh] flex items-center justify-center">
+                <div className="w-6 h-6 border-2 border-aurum rounded-full animate-spin border-t-transparent"></div>
+            </div>
+        }>
+            <SuccessContent />
+        </Suspense>
     );
 }
