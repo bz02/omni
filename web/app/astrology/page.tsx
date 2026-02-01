@@ -5,16 +5,22 @@ import { MoonStar, Loader2, Info, MapPin } from "lucide-react";
 import clsx from "clsx";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useUsage } from "@/contexts/UsageContext";
 import Image from "next/image";
 import ReactMarkdown from 'react-markdown';
 
 export default function AstrologyPage() {
     const { t, locale } = useLanguage();
+    const { incrementFeature } = useUsage();
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<any>(null);
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
+
+        // Enforce Limit
+        if (!incrementFeature()) return;
+
         setLoading(true);
         const formData = new FormData(e.currentTarget);
         const data = Object.fromEntries(formData.entries());
@@ -37,7 +43,7 @@ export default function AstrologyPage() {
     return (
         <div className="relative min-h-screen">
             {/* Background Image */}
-            <div className="fixed inset-0 z-0 pointer-events-none opacity-10 mix-blend-multiply">
+            <div className="fixed inset-0 z-0 pointer-events-none opacity-5">
                 <Image
                     src="/assets/Gemini_Generated_Image_5lv2xh5lv2xh5lv2.png"
                     alt="Space Background"

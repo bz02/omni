@@ -4,12 +4,14 @@ import { useState } from "react";
 import { Brain, ArrowRight, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useUsage } from "@/contexts/UsageContext";
 import Image from "next/image";
 
 
 
 export default function MBTIPage() {
     const { t, locale } = useLanguage();
+    const { incrementFeature } = useUsage();
     const questions = t.mbti.questions;
     const [started, setStarted] = useState(false);
     const [currentQ, setCurrentQ] = useState(0);
@@ -102,7 +104,7 @@ export default function MBTIPage() {
     return (
         <div className="relative min-h-screen flex flex-col">
             {/* Background Image */}
-            <div className="fixed inset-0 z-0 pointer-events-none opacity-10 mix-blend-multiply">
+            <div className="fixed inset-0 z-0 pointer-events-none opacity-5">
                 <Image
                     src="/assets/Gemini_Generated_Image_4n1yx94n1yx94n1y.png"
                     alt="MBTI Background"
@@ -111,54 +113,67 @@ export default function MBTIPage() {
                 />
             </div>
 
-            <div className="relative z-10 max-w-3xl mx-auto min-h-[60vh] flex flex-col items-center justify-center flex-1">
-                {!started ? (
-                    <div className="text-center space-y-6">
-                        <Brain className="w-16 h-16 text-rose-gold mx-auto" />
-                        <h1 className="text-4xl font-bold text-charcoal">{t.mbti.title}</h1>
-                        <p className="text-charcoal/70 max-w-lg mx-auto font-medium">
-                            {t.mbti.desc}
-                        </p>
-                        <button
-                            onClick={() => setStarted(true)}
-                            className="px-8 py-3 bg-gradient-to-r from-rose-gold to-aurum text-white font-semibold rounded-full hover:opacity-90 transition-all text-lg shadow-soft-glow"
+            <div className="relative z-10 max-w-3xl mx-auto min-h-[60vh] flex flex-col items-center justify-center flex-1 p-6">
+                <div className="bg-white/80 backdrop-blur-xl p-8 rounded-[2rem] shadow-xl border border-white/50 w-full">
+                    {!started ? (
+                        <div className="text-center space-y-6">
+                            <Brain className="w-16 h-16 text-aurum mx-auto" />
+                            <h1 className="text-4xl font-bold text-charcoal font-display">{t.mbti.title}</h1>
+                            <p className="text-charcoal/80 max-w-lg mx-auto font-medium leading-relaxed">
+                                {t.mbti.desc}
+                            </p>
+                            <button
+                                onClick={() => {
+                                    if (incrementFeature()) {
+                                        setStarted(true);
+                                    }
+                                }}
+                                className="px-8 py-3 bg-gradient-to-r from-rose-gold to-aurum text-white font-semibold rounded-full hover:opacity-90 transition-all text-lg shadow-soft-glow"
+                            >
+                                {t.mbti.start}
+                            </button>
+                        </div>
+                    ) : loading ? (
+                        <div className="flex flex-col items-center gap-4 py-12">
+                            <Loader2 className="w-12 h-12 animate-spin text-aurum" />
+                            <p className="text-charcoal/70 font-medium">{t.mbti.analyzing}</p>
+                        </div>
+                    ) : (
+                        <motion.div
+                            key={currentQ}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="space-y-8"
                         >
-                            {t.mbti.start}
-                        </button>
-                    </div>
-                ) : loading ? (
-                    <div className="flex flex-col items-center gap-4">
-                        <Loader2 className="w-10 h-10 animate-spin text-rose-gold" />
-                        <p className="text-charcoal/70 font-medium">{t.mbti.analyzing}</p>
-                    </div>
-                ) : (
-                    <motion.div
-                        key={currentQ}
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="w-full max-w-xl space-y-8 bg-white/50 backdrop-blur-xl p-8 rounded-3xl border border-white/60 shadow-sm"
-                    >
-                        <div className="flex justify-between text-sm text-charcoal/60 font-medium">
-                            <span>{t.mbti.question} {currentQ + 1} / {questions.length}</span>
-                            <span>{Math.round(((currentQ) / questions.length) * 100)}% {t.mbti.complete}</span>
-                        </div>
+                            <div className="flex justify-between text-sm text-charcoal/60 font-bold uppercase tracking-wider">
+                                <span>{t.mbti.question} {currentQ + 1} / {questions.length}</span>
+                                <span>{Math.round(((currentQ) / questions.length) * 100)}% {t.mbti.complete}</span>
+                            </div>
 
-                        <h2 className="text-2xl font-semibold text-center text-charcoal">{questions[currentQ].text}</h2>
+                            <div className="h-2 bg-neutral-100 rounded-full overflow-hidden">
+                                <div
+                                    className="h-full bg-aurum transition-all duration-300"
+                                    style={{ width: `${((currentQ) / questions.length) * 100}%` }}
+                                />
+                            </div>
 
-                        <div className="space-y-4">
-                            {questions[currentQ].options.map((opt, idx) => (
-                                <button
-                                    key={idx}
-                                    onClick={() => handleAnswer(idx)}
-                                    className="w-full text-left p-4 rounded-xl border border-rose-gold/20 bg-white/80 hover:border-aurum/50 hover:bg-white transition-all group flex justify-between items-center shadow-sm"
-                                >
-                                    <span className="text-charcoal/90 group-hover:text-charcoal font-medium transition-colors">{opt}</span>
-                                    <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 text-aurum transition-opacity" />
-                                </button>
-                            ))}
-                        </div>
-                    </motion.div>
-                )}
+                            <h2 className="text-2xl font-bold text-center text-charcoal py-4">{questions[currentQ].text}</h2>
+
+                            <div className="space-y-3">
+                                {questions[currentQ].options.map((opt, idx) => (
+                                    <button
+                                        key={idx}
+                                        onClick={() => handleAnswer(idx)}
+                                        className="w-full text-left p-5 rounded-2xl border border-neutral-200 bg-white hover:border-aurum hover:bg-rose-gold/5 transition-all group flex justify-between items-center shadow-sm hover:shadow-md"
+                                    >
+                                        <span className="text-charcoal/90 font-medium">{opt}</span>
+                                        <ArrowRight className="w-5 h-5 text-neutral-300 group-hover:text-aurum transition-colors" />
+                                    </button>
+                                ))}
+                            </div>
+                        </motion.div>
+                    )}
+                </div>
             </div>
         </div>
     );

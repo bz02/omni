@@ -4,13 +4,13 @@ import { Brain, Compass, HandCoins, MoonStar, Sparkles } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { useLanguage } from "../contexts/LanguageContext";
+import { useUsage } from "../contexts/UsageContext";
 import OracleInterface from "../components/OracleInterface";
-import PaymentModal from "../components/PaymentModal";
 import { useState } from "react";
 
 export default function Home() {
   const { t } = useLanguage();
-  const [showPayment, setShowPayment] = useState(false);
+  const { openPaywall } = useUsage();
 
   const quickFeatures = [
     { title: t.home.features.astro, body: t.astrology.desc, icon: <MoonStar className="text-aurum" />, link: "/astrology" },
@@ -20,8 +20,6 @@ export default function Home() {
 
   return (
     <div className="space-y-12">
-      <PaymentModal isOpen={showPayment} onClose={() => setShowPayment(false)} />
-
       {/* Hero / Oracle Section */}
       <section className="relative py-10">
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] opacity-40 pointer-events-none z-0">
@@ -47,7 +45,7 @@ export default function Home() {
 
         <div className="mt-8 flex justify-center gap-4">
           <button
-            onClick={() => setShowPayment(true)}
+            onClick={() => openPaywall()}
             className="flex items-center gap-2 px-6 py-3 rounded-full bg-white/80 hover:bg-white border border-rose-gold/30 hover:border-aurum/50 transition-all text-charcoal hover:text-charcoal shadow-sm hover:shadow-md"
           >
             <HandCoins className="w-4 h-4 text-aurum" />

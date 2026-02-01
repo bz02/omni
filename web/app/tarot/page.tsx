@@ -5,10 +5,12 @@ import { Compass, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import clsx from "clsx";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { useUsage } from "@/contexts/UsageContext";
 import Image from "next/image";
 
 export default function TarotPage() {
     const { t, locale } = useLanguage();
+    const { incrementFeature } = useUsage();
 
     const spreads = [
         { id: "Three-Card", name: t.tarot.spreads.three, count: 3 },
@@ -27,6 +29,10 @@ export default function TarotPage() {
 
     async function handleDraw() {
         if (!question) return;
+
+        // Enforce Limit
+        if (!incrementFeature()) return;
+
         setLoading(true);
         setResult(null);
         setFlippedCards([]);
@@ -56,7 +62,7 @@ export default function TarotPage() {
     return (
         <div className="relative min-h-screen">
             {/* Background Image */}
-            <div className="fixed inset-0 z-0 pointer-events-none opacity-10 mix-blend-multiply">
+            <div className="fixed inset-0 z-0 pointer-events-none opacity-5">
                 <Image
                     src="/assets/Gemini_Generated_Image_d51vljd51vljd51v.png"
                     alt="Tarot Background"

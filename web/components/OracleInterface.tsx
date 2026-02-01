@@ -3,6 +3,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useUsage } from '../contexts/UsageContext';
 import { Send, Sparkles, User, Bot, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -15,6 +16,7 @@ type Persona = 'mentor' | 'healer' | 'prophet';
 
 export default function OracleInterface() {
     const { t, locale } = useLanguage();
+    const { incrementChat } = useUsage();
     const [messages, setMessages] = useState<Message[]>([]);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
@@ -38,6 +40,9 @@ export default function OracleInterface() {
 
     const handleSend = async () => {
         if (!input.trim() || loading) return;
+
+        // Enforce Limit
+        if (!incrementChat()) return;
 
         const userMsg: Message = { role: 'user', content: input };
         setMessages(prev => [...prev, userMsg]);

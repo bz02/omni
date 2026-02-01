@@ -1,106 +1,15 @@
 {
   "pages": {
-    "/_not-found/page": [
-      "static/chunks/webpack-1d7c9dca6bc0368c.js",
-      "static/chunks/fd9d1056-411c0e320fe15393.js",
-      "static/chunks/117-521b3ac26411125a.js",
-      "static/chunks/main-app-7b850e1b099fc849.js",
-      "static/chunks/app/_not-found/page-fce9bcb101e7d56c.js"
+    "/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/page.js"
     ],
     "/layout": [
-      "static/chunks/webpack-1d7c9dca6bc0368c.js",
-      "static/chunks/fd9d1056-411c0e320fe15393.js",
-      "static/chunks/117-521b3ac26411125a.js",
-      "static/chunks/main-app-7b850e1b099fc849.js",
-      "static/css/f229945cb3ff7fae.css",
-      "static/chunks/145-6261ec319606d8c6.js",
-      "static/chunks/648-81b2c6f498acb688.js",
-      "static/chunks/428-7cc1de5194ef2ffd.js",
-      "static/chunks/app/layout-88cd667154367194.js"
-    ],
-    "/astrology/page": [
-      "static/chunks/webpack-1d7c9dca6bc0368c.js",
-      "static/chunks/fd9d1056-411c0e320fe15393.js",
-      "static/chunks/117-521b3ac26411125a.js",
-      "static/chunks/main-app-7b850e1b099fc849.js",
-      "static/chunks/775-755bc68cedf2f63e.js",
-      "static/chunks/145-6261ec319606d8c6.js",
-      "static/chunks/434-7b9f26abc87253c2.js",
-      "static/chunks/app/astrology/page-b663413a19d2c571.js"
-    ],
-    "/login/page": [
-      "static/chunks/webpack-1d7c9dca6bc0368c.js",
-      "static/chunks/fd9d1056-411c0e320fe15393.js",
-      "static/chunks/117-521b3ac26411125a.js",
-      "static/chunks/main-app-7b850e1b099fc849.js",
-      "static/chunks/775-755bc68cedf2f63e.js",
-      "static/chunks/145-6261ec319606d8c6.js",
-      "static/chunks/428-7cc1de5194ef2ffd.js",
-      "static/chunks/app/login/page-09f7dc47e190fc3a.js"
-    ],
-    "/mbti/page": [
-      "static/chunks/webpack-1d7c9dca6bc0368c.js",
-      "static/chunks/fd9d1056-411c0e320fe15393.js",
-      "static/chunks/117-521b3ac26411125a.js",
-      "static/chunks/main-app-7b850e1b099fc849.js",
-      "static/chunks/775-755bc68cedf2f63e.js",
-      "static/chunks/145-6261ec319606d8c6.js",
-      "static/chunks/app/mbti/page-0c046c31d6905082.js"
-    ],
-    "/page": [
-      "static/chunks/webpack-1d7c9dca6bc0368c.js",
-      "static/chunks/fd9d1056-411c0e320fe15393.js",
-      "static/chunks/117-521b3ac26411125a.js",
-      "static/chunks/main-app-7b850e1b099fc849.js",
-      "static/chunks/775-755bc68cedf2f63e.js",
-      "static/chunks/145-6261ec319606d8c6.js",
-      "static/chunks/648-81b2c6f498acb688.js",
-      "static/chunks/580-4df18255586ced95.js",
-      "static/chunks/app/page-2d5b2f832a1acb50.js"
-    ],
-    "/payments/cancel/page": [
-      "static/chunks/webpack-1d7c9dca6bc0368c.js",
-      "static/chunks/fd9d1056-411c0e320fe15393.js",
-      "static/chunks/117-521b3ac26411125a.js",
-      "static/chunks/main-app-7b850e1b099fc849.js",
-      "static/chunks/775-755bc68cedf2f63e.js",
-      "static/chunks/648-81b2c6f498acb688.js",
-      "static/chunks/app/payments/cancel/page-28a1103c1c4f7458.js"
-    ],
-    "/oracle/page": [
-      "static/chunks/webpack-1d7c9dca6bc0368c.js",
-      "static/chunks/fd9d1056-411c0e320fe15393.js",
-      "static/chunks/117-521b3ac26411125a.js",
-      "static/chunks/main-app-7b850e1b099fc849.js",
-      "static/chunks/775-755bc68cedf2f63e.js",
-      "static/chunks/145-6261ec319606d8c6.js",
-      "static/chunks/app/oracle/page-8eabc3534b59e0f2.js"
-    ],
-    "/payments/page": [
-      "static/chunks/webpack-1d7c9dca6bc0368c.js",
-      "static/chunks/fd9d1056-411c0e320fe15393.js",
-      "static/chunks/117-521b3ac26411125a.js",
-      "static/chunks/main-app-7b850e1b099fc849.js",
-      "static/chunks/775-755bc68cedf2f63e.js",
-      "static/chunks/app/payments/page-4ae02cd64a0148ce.js"
-    ],
-    "/payments/success/page": [
-      "static/chunks/webpack-1d7c9dca6bc0368c.js",
-      "static/chunks/fd9d1056-411c0e320fe15393.js",
-      "static/chunks/117-521b3ac26411125a.js",
-      "static/chunks/main-app-7b850e1b099fc849.js",
-      "static/chunks/775-755bc68cedf2f63e.js",
-      "static/chunks/648-81b2c6f498acb688.js",
-      "static/chunks/app/payments/success/page-e4688eab3d2c20cd.js"
-    ],
-    "/tarot/page": [
-      "static/chunks/webpack-1d7c9dca6bc0368c.js",
-      "static/chunks/fd9d1056-411c0e320fe15393.js",
-      "static/chunks/117-521b3ac26411125a.js",
-      "static/chunks/main-app-7b850e1b099fc849.js",
-      "static/chunks/775-755bc68cedf2f63e.js",
-      "static/chunks/145-6261ec319606d8c6.js",
-      "static/chunks/app/tarot/page-9fd8cfd853254e8f.js"
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/layout.css",
+      "static/chunks/app/layout.js"
     ]
   }
 }
