@@ -104,7 +104,7 @@ docker push <your-account-id>.dkr.ecr.<region>.amazonaws.com/omni-web:latest
     - Load Balancer: Create an ALB listening on Port 80/443, forwarding to target group on Port 3000.
 
 ## Database Provisioning
-For the full experience, you can a Postgres DB and Pinecone Index.
+For the full experience, you need a Postgres DB and Pinecone Index.
 
 ### PostgreSQL (AWS RDS)
 1.  Create an RDS instance (PostgreSQL 14+).
