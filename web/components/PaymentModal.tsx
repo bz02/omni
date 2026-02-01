@@ -26,7 +26,6 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
         if (!finalAmount || finalAmount <= 0) return;
 
         setProcessing(true);
-        // setStep('processing'); // You can show a specific processing step if you want
 
         try {
             const res = await fetch('/api/payments', {
@@ -35,20 +34,16 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                 body: JSON.stringify({ amount: finalAmount }),
             });
 
-            if (res.ok) {
-                setStep('success');
-                confetti({
-                    particleCount: 100,
-                    spread: 70,
-                    origin: { y: 0.6 },
-                    colors: ['#D4AF37', '#FFD700', '#F0E68C'] // Aurum colors
-                });
+            const data = await res.json();
+
+            if (res.ok && data.url) {
+                window.location.href = data.url;
             } else {
-                alert("Payment failed (mock)");
+                alert(data.error || "Payment failed");
+                setProcessing(false);
             }
         } catch (e) {
             console.error(e);
-        } finally {
             setProcessing(false);
         }
     };
@@ -98,8 +93,8 @@ export default function PaymentModal({ isOpen, onClose }: PaymentModalProps) {
                                             key={amt}
                                             onClick={() => { setAmount(amt); setCustomAmount(""); }}
                                             className={`py-3 rounded-xl border transition-all ${amount === amt
-                                                    ? 'bg-aurum text-black border-aurum font-bold shadow-glow'
-                                                    : 'bg-neutral-800 border-neutral-700 hover:border-aurum/50'
+                                                ? 'bg-aurum text-black border-aurum font-bold shadow-glow'
+                                                : 'bg-neutral-800 border-neutral-700 hover:border-aurum/50'
                                                 }`}
                                         >
                                             ${amt}

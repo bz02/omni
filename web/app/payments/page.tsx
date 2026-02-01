@@ -28,18 +28,17 @@ export default function PaymentsPage() {
                 body: JSON.stringify({ amount }),
             });
 
-            if (res.ok) {
-                setSuccess(true);
-                canvasConfetti({
-                    particleCount: 100,
-                    spread: 70,
-                    origin: { y: 0.6 },
-                    colors: ['#D4AF37', '#F8F8FF', '#2D004B']
-                });
+            const data = await res.json();
+
+            if (res.ok && data.url) {
+                window.location.href = data.url;
+            } else {
+                debugger; // Keep for debugging if needed
+                console.error("Payment failed", data.error);
+                setLoading(false);
             }
         } catch (e) {
             console.error(e);
-        } finally {
             setLoading(false);
         }
     };

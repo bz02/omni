@@ -1,25 +1,44 @@
 import { NextResponse } from 'next/server';
+import Stripe from 'stripe';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2026-01-28.clover' as any,
+});
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { amount } = body;
 
-    // Mock Stripe PaymentIntent creation
-    // In real app: const paymentIntent = await stripe.paymentIntents.create({ amount, currency: 'usd' })
+    if (!amount || amount <= 0) {
+      return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
+    }
 
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
-    if (amount <= 0) throw new Error("Invalid amount");
-
-    return NextResponse.json({
-      success: true,
-      clientSecret: "pi_mock_secret_" + Math.random().toString(36),
-      message: `Payment of $${amount} simulated successfully.`
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: 'Donation / Tip',
+            },
+            unit_amount: Math.round(amount * 100), // convert to cents
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: `${process.env.NEXT_PUBLIC_API_BASE}/payments/success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_API_BASE}/payments/cancel`,
     });
 
-  } catch (error) {
-    return NextResponse.json({ error: "Payment failed" }, { status: 400 });
+    return NextResponse.json({ url: session.url });
+
+  } catch (error: any) {
+    console.error("Stripe Error:", error);
+    return NextResponse.json({ error: error.message || "Payment failed" }, { status: 500 });
   }
 }
+
 

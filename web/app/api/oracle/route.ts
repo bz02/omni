@@ -100,7 +100,7 @@ export async function POST(req: Request) {
     // --- Database Integration ---
     try {
       const { getServerSession } = await import("next-auth");
-      const { authOptions } = await import("../auth/[...nextauth]/route");
+      const { authOptions } = await import("@/lib/auth");
       const session = await getServerSession(authOptions);
 
       if (session?.user?.id && session.user.id !== 'guest') {
@@ -128,6 +128,7 @@ export async function POST(req: Request) {
 
         const chatSession = await prisma.chatSession.create({
           data: {
+            persona: persona || "oracle", // Default to oracle if undefined
             userId: session.user.id,
             messages: {
               create: [

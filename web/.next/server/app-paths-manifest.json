@@ -1,7 +1,6 @@
 {
   "/page": "app/page.js",
-  "/api/oracle/route": "app/api/oracle/route.js",
-  "/tarot/page": "app/tarot/page.js",
-  "/astrology/page": "app/astrology/page.js",
-  "/mbti/page": "app/mbti/page.js"
+  "/api/astrology/route": "app/api/astrology/route.js",
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
+  "/astrology/page": "app/astrology/page.js"
 }

@@ -107,7 +107,7 @@ export async function POST(request: Request) {
     // --- Database Integration ---
     try {
       const { getServerSession } = await import("next-auth");
-      const { authOptions } = await import("../auth/[...nextauth]/route");
+      const { authOptions } = await import("@/lib/auth");
       const session = await getServerSession(authOptions);
 
       if (session?.user?.id) {

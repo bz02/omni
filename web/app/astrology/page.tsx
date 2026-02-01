@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { MoonStar, Loader2, Info } from "lucide-react";
+import { MoonStar, Loader2, Info, MapPin } from "lucide-react";
 import clsx from "clsx";
 import { motion } from "framer-motion";
 import { useLanguage } from "@/contexts/LanguageContext";
 import Image from "next/image";
+import ReactMarkdown from 'react-markdown';
 
 export default function AstrologyPage() {
     const { t, locale } = useLanguage();
@@ -45,7 +46,7 @@ export default function AstrologyPage() {
                 />
             </div>
 
-            <div className="relative z-10 max-w-4xl mx-auto space-y-12 py-8">
+            <div className="relative z-10 max-w-5xl mx-auto space-y-12 py-8 px-4">
                 <header className="space-y-4 text-center">
                     <h1 className="text-4xl font-bold flex items-center justify-center gap-3 text-charcoal">
                         <MoonStar className="text-aurum w-8 h-8" />
@@ -56,64 +57,60 @@ export default function AstrologyPage() {
                     </p>
                 </header>
 
-                <div className="grid md:grid-cols-2 gap-8">
+                <div className="grid md:grid-cols-12 gap-8">
                     {/* Input Form */}
-                    <div className="bg-white/60 border border-white/50 rounded-2xl p-6 h-fit backdrop-blur-md shadow-sm">
-                        <form onSubmit={handleSubmit} className="space-y-4">
-                            <h2 className="text-xl font-bold text-charcoal mb-4">{t.astrology.form.title}</h2>
+                    <div className="md:col-span-4 h-fit">
+                        <div className="bg-white/60 border border-white/50 rounded-2xl p-6 backdrop-blur-md shadow-sm sticky top-8">
+                            <form onSubmit={handleSubmit} className="space-y-4">
+                                <h2 className="text-xl font-bold text-charcoal mb-4">{t.astrology.form.title}</h2>
 
-                            <div className="space-y-2">
-                                <label className="text-sm text-charcoal/70 font-medium">{t.astrology.form.date}</label>
-                                <input
-                                    name="date"
-                                    type="date"
-                                    required
-                                    className="w-full bg-white/50 border border-white/60 rounded-lg px-4 py-2 focus:border-aurum/50 outline-none transition-colors text-charcoal font-medium shadow-sm"
-                                    defaultValue="2000-01-01"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-sm text-charcoal/70 font-medium">{t.astrology.form.time}</label>
-                                <input
-                                    name="time"
-                                    type="time"
-                                    required
-                                    className="w-full bg-white/50 border border-white/60 rounded-lg px-4 py-2 focus:border-aurum/50 outline-none transition-colors text-charcoal font-medium shadow-sm"
-                                    defaultValue="12:00"
-                                />
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <label className="text-sm text-charcoal/70 font-medium">{t.astrology.form.lat}</label>
+                                    <label className="text-sm text-charcoal/70 font-medium">{t.astrology.form.date}</label>
                                     <input
-                                        name="lat"
-                                        placeholder={t.astrology.form.placeholders.lat}
-                                        className="w-full bg-white/50 border border-white/60 rounded-lg px-4 py-2 focus:border-aurum/50 outline-none transition-colors text-charcoal font-medium shadow-sm placeholder-charcoal/30"
+                                        name="date"
+                                        type="date"
+                                        required
+                                        className="w-full bg-white/50 border border-white/60 rounded-lg px-4 py-2 focus:border-aurum/50 outline-none transition-colors text-charcoal font-medium shadow-sm"
+                                        defaultValue="1995-01-01"
                                     />
                                 </div>
+
                                 <div className="space-y-2">
-                                    <label className="text-sm text-charcoal/70 font-medium">{t.astrology.form.long}</label>
+                                    <label className="text-sm text-charcoal/70 font-medium">{t.astrology.form.time}</label>
                                     <input
-                                        name="long"
-                                        placeholder={t.astrology.form.placeholders.long}
-                                        className="w-full bg-white/50 border border-white/60 rounded-lg px-4 py-2 focus:border-aurum/50 outline-none transition-colors text-charcoal font-medium shadow-sm placeholder-charcoal/30"
+                                        name="time"
+                                        type="time"
+                                        required
+                                        className="w-full bg-white/50 border border-white/60 rounded-lg px-4 py-2 focus:border-aurum/50 outline-none transition-colors text-charcoal font-medium shadow-sm"
+                                        defaultValue="12:00"
                                     />
                                 </div>
-                            </div>
 
-                            <button
-                                disabled={loading}
-                                className="w-full bg-gradient-to-r from-rose-gold to-aurum text-white font-bold py-3 rounded-lg hover:shadow-soft-glow transition-all flex items-center justify-center gap-2 mt-4 shadow-md"
-                            >
-                                {loading ? <Loader2 className="animate-spin w-4 h-4 text-white" /> : t.astrology.form.calculate}
-                            </button>
-                        </form>
+                                <div className="space-y-2">
+                                    <label className="text-sm text-charcoal/70 font-medium">{locale === 'zh' ? "出生地点" : "Birth Place"}</label>
+                                    <div className="relative">
+                                        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal/40" />
+                                        <input
+                                            name="place"
+                                            placeholder={locale === 'zh' ? "例如：北京, 中国" : "e.g. New York, USA"}
+                                            required
+                                            className="w-full bg-white/50 border border-white/60 rounded-lg pl-10 pr-4 py-2 focus:border-aurum/50 outline-none transition-colors text-charcoal font-medium shadow-sm placeholder-charcoal/30"
+                                        />
+                                    </div>
+                                </div>
+
+                                <button
+                                    disabled={loading}
+                                    className="w-full bg-gradient-to-r from-rose-gold to-aurum text-white font-bold py-3 rounded-lg hover:shadow-soft-glow transition-all flex items-center justify-center gap-2 mt-4 shadow-md"
+                                >
+                                    {loading ? <Loader2 className="animate-spin w-4 h-4 text-white" /> : t.astrology.form.calculate}
+                                </button>
+                            </form>
+                        </div>
                     </div>
 
                     {/* Results Display */}
-                    <div className="space-y-6">
+                    <div className="md:col-span-8 min-h-[50vh]">
                         {!result && !loading && (
                             <div className="h-full flex flex-col items-center justify-center text-charcoal/40 border border-dashed border-rose-gold/20 rounded-2xl p-12 bg-white/30">
                                 <Info className="w-10 h-10 mb-4 opacity-50" />
@@ -121,54 +118,28 @@ export default function AstrologyPage() {
                             </div>
                         )}
 
+                        {loading && (
+                            <div className="h-full flex flex-col items-center justify-center text-charcoal/60 space-y-4">
+                                <Loader2 className="w-10 h-10 animate-spin text-aurum" />
+                                <p className="animate-pulse font-medium">{locale === 'zh' ? "正在以此辰此地沟通天地..." : "Consulting the stars and the elements..."}</p>
+                            </div>
+                        )}
+
                         {result && (
                             <motion.div
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="space-y-6"
+                                className="bg-white/70 border border-white/60 rounded-3xl p-8 shadow-sm relative overflow-hidden"
                             >
-                                <div className="bg-white/70 border border-white/60 rounded-2xl p-6 shadow-sm">
-                                    <h3 className="text-lg font-bold text-charcoal mb-4 border-b border-rose-gold/10 pb-2">{t.astrology.results.planets}</h3>
-                                    <div className="space-y-2 text-sm">
-                                        {result.planets.map((p: any) => (
-                                            <div key={p.name} className="flex justify-between items-center py-2 border-b border-rose-gold/5 last:border-0 hover:bg-rose-gold/5 px-2 rounded transition-colors">
-                                                <span className="font-bold text-charcoal/90">{p.name}</span>
-                                                <span className="text-charcoal/70 font-medium">{p.sign} {p.degree.toFixed(1)}° (House {p.house})</span>
-                                            </div>
-                                        ))}
-                                    </div>
+                                <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+                                    <MoonStar className="w-40 h-40 text-rose-gold" />
                                 </div>
 
-                                <div className="bg-white/70 border border-white/60 rounded-2xl p-6 shadow-sm">
-                                    <h3 className="text-lg font-bold text-charcoal mb-4 border-b border-rose-gold/10 pb-2">{t.astrology.results.aspects}</h3>
-                                    <div className="space-y-2 text-sm">
-                                        {result.aspects.map((a: any, i: number) => (
-                                            <div key={i} className="flex items-center gap-2 py-1">
-                                                <span className="text-charcoal/80 font-medium">{a.planet1}</span>
-                                                <span className={clsx(
-                                                    "text-xs px-2 py-0.5 rounded border font-semibold",
-                                                    a.type === "Trine" || a.type === "Sextile" ? "border-green-200 text-green-700 bg-green-50" :
-                                                        a.type === "Square" || a.type === "Opposition" ? "border-red-200 text-red-700 bg-red-50" :
-                                                            "border-blue-200 text-blue-700 bg-blue-50"
-                                                )}>{a.type}</span>
-                                                <span className="text-charcoal/80 font-medium">{a.planet2}</span>
-                                                <span className="text-charcoal/50 text-xs ml-auto font-medium">{a.orb.toFixed(1)}° orb</span>
-                                            </div>
-                                        ))}
-                                    </div>
+                                <div className="prose prose-stone max-w-none prose-headings:font-bold prose-headings:text-charcoal prose-p:text-charcoal/80 prose-strong:text-charcoal/90 prose-strong:font-bold relative z-10">
+                                    <ReactMarkdown>{result.content}</ReactMarkdown>
                                 </div>
 
-                                <div className="bg-gradient-to-br from-white/80 to-rose-gold/10 border border-white/60 rounded-2xl p-6 relative overflow-hidden shadow-sm">
-                                    <div className="absolute top-0 right-0 p-4 opacity-20 pointer-events-none">
-                                        <MoonStar className="w-24 h-24 text-rose-gold" />
-                                    </div>
-                                    <h3 className="text-lg font-bold text-charcoal mb-3 relative z-10">{t.astrology.results.analysis}</h3>
-                                    <div className="prose prose-sm max-w-none text-charcoal/80 relative z-10 whitespace-pre-line leading-relaxed font-medium">
-                                        {result.analysis}
-                                    </div>
-                                </div>
-
-                                <div className="flex justify-center pt-4">
+                                <div className="flex justify-center pt-8 border-t border-charcoal/5 mt-8">
                                     <button className="text-sm text-aurum hover:underline underline-offset-4 opacity-90 hover:opacity-100 transition-opacity font-bold uppercase tracking-wider">
                                         {t.astrology.results.download}
                                     </button>

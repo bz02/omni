@@ -35,6 +35,17 @@ The easiest way to deploy this particular architecture is Vercel, as it natively
     ```
 5.  **Deploy**: Click "Deploy". Vercel will build and launch your site.
 
+### Stripe Payment Configuration
+To enable the payment/tipping feature:
+1.  **Create Stripe Account**: Go to [dashboard.stripe.com](https://dashboard.stripe.com) and sign up.
+2.  **Get API Keys**: 
+    - Go to Developers -> API Keys.
+    - Copy the **Secret Key** (`sk_live_...` or `sk_test_...`).
+3.  **Environment Variables**:
+    - Set `STRIPE_SECRET_KEY` in Vercel to your Secret Key.
+    - Set `NEXT_PUBLIC_API_BASE` in Vercel to your production URL (e.g., `https://omni-web.vercel.app`).
+        - *Important*: This is mostly used for the redirect back to your site after payment.
+
 ## Option 2: AWS (Docker / ECS)
 For a more robust, "cloud-native" deployment as requested in the PRD.
 
