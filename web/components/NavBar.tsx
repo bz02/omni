@@ -14,8 +14,8 @@ export function NavBar() {
     const navItems = [
         { name: t.nav.home, href: "/" },
         { name: t.nav.astrology, href: "/astrology" },
-        { name: t.nav.tarot, href: "/tarot" },
-        { name: t.nav.mbti, href: "/mbti" },
+        // { name: t.nav.tarot, href: "/tarot" },
+        // { name: t.nav.mbti, href: "/mbti" },
     ];
 
     return (

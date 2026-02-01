@@ -78,7 +78,7 @@ export default function Home() {
             link: "/mbti",
             img: "/assets/Gemini_Generated_Image_4n1yx94n1yx94n1y.png"
           },
-        ].map((f, i) => (
+        ].filter(f => f.link !== "/mbti" && f.link !== "/tarot").map((f, i) => (
           <Link key={i} href={f.link} className="relative group overflow-hidden rounded-3xl h-80 block border border-white/40 shadow-sm hover:shadow-soft-glow transition-all duration-500 bg-white/50">
             {/* Background Image */}
             <div className="absolute inset-0">

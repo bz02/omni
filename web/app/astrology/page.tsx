@@ -65,8 +65,8 @@ export default function AstrologyPage() {
 
                 <div className="grid md:grid-cols-12 gap-8">
                     {/* Input Form */}
-                    <div className="md:col-span-4 h-fit">
-                        <div className="bg-white/60 border border-white/50 rounded-2xl p-6 backdrop-blur-md shadow-sm sticky top-8">
+                    <div className="md:col-span-4 h-fit min-w-0 print:hidden">
+                        <div className="bg-white/60 border border-white/50 rounded-2xl p-4 md:p-6 backdrop-blur-md shadow-sm md:sticky md:top-8">
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <h2 className="text-xl font-bold text-charcoal mb-4">{t.astrology.form.title}</h2>
 
@@ -76,7 +76,7 @@ export default function AstrologyPage() {
                                         name="date"
                                         type="date"
                                         required
-                                        className="w-full bg-white/50 border border-white/60 rounded-lg px-4 py-2 focus:border-aurum/50 outline-none transition-colors text-charcoal font-medium shadow-sm"
+                                        className="w-full max-w-full bg-white/50 border border-white/60 rounded-lg px-4 py-2 focus:border-aurum/50 outline-none transition-colors text-charcoal font-medium shadow-sm"
                                         defaultValue="1995-01-01"
                                     />
                                 </div>
@@ -87,7 +87,7 @@ export default function AstrologyPage() {
                                         name="time"
                                         type="time"
                                         required
-                                        className="w-full bg-white/50 border border-white/60 rounded-lg px-4 py-2 focus:border-aurum/50 outline-none transition-colors text-charcoal font-medium shadow-sm"
+                                        className="w-full max-w-full bg-white/50 border border-white/60 rounded-lg px-4 py-2 focus:border-aurum/50 outline-none transition-colors text-charcoal font-medium shadow-sm"
                                         defaultValue="12:00"
                                     />
                                 </div>
@@ -100,7 +100,7 @@ export default function AstrologyPage() {
                                             name="place"
                                             placeholder={locale === 'zh' ? "例如：北京, 中国" : "e.g. New York, USA"}
                                             required
-                                            className="w-full bg-white/50 border border-white/60 rounded-lg pl-10 pr-4 py-2 focus:border-aurum/50 outline-none transition-colors text-charcoal font-medium shadow-sm placeholder-charcoal/30"
+                                            className="w-full max-w-full bg-white/50 border border-white/60 rounded-lg pl-10 pr-4 py-2 focus:border-aurum/50 outline-none transition-colors text-charcoal font-medium shadow-sm placeholder-charcoal/30"
                                         />
                                     </div>
                                 </div>
@@ -137,16 +137,19 @@ export default function AstrologyPage() {
                                 animate={{ opacity: 1, y: 0 }}
                                 className="bg-white/70 border border-white/60 rounded-3xl p-8 shadow-sm relative overflow-hidden"
                             >
-                                <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
+                                <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none print:hidden">
                                     <MoonStar className="w-40 h-40 text-rose-gold" />
                                 </div>
 
-                                <div className="prose prose-stone max-w-none prose-headings:font-bold prose-headings:text-charcoal prose-p:text-charcoal/80 prose-strong:text-charcoal/90 prose-strong:font-bold relative z-10">
+                                <div className="prose prose-stone max-w-none prose-headings:font-bold prose-headings:text-charcoal prose-p:text-charcoal/80 prose-strong:text-charcoal/90 prose-strong:font-bold relative z-10 print:text-black">
                                     <ReactMarkdown>{result.content}</ReactMarkdown>
                                 </div>
 
                                 <div className="flex justify-center pt-8 border-t border-charcoal/5 mt-8">
-                                    <button className="text-sm text-aurum hover:underline underline-offset-4 opacity-90 hover:opacity-100 transition-opacity font-bold uppercase tracking-wider">
+                                    <button
+                                        onClick={() => window.print()}
+                                        className="text-sm text-aurum hover:underline underline-offset-4 opacity-90 hover:opacity-100 transition-opacity font-bold uppercase tracking-wider print:hidden"
+                                    >
                                         {t.astrology.results.download}
                                     </button>
                                 </div>

@@ -16,7 +16,7 @@ type UsageContextType = {
 
 const UsageContext = createContext<UsageContextType | undefined>(undefined);
 
-const CHAT_LIMIT = 3;
+const CHAT_LIMIT = 6;
 const FEATURE_LIMIT = 3;
 
 export function UsageProvider({ children }: { children: ReactNode }) {
@@ -27,9 +27,9 @@ export function UsageProvider({ children }: { children: ReactNode }) {
 
     // Load from localStorage on mount
     useEffect(() => {
-        const savedChat = localStorage.getItem('omni-usage-chat-v2');
-        const savedFeature = localStorage.getItem('omni-usage-feature-v2');
-        const savedAccess = localStorage.getItem('omni-pro-access-v2');
+        const savedChat = localStorage.getItem('omni-usage-chat-v3');
+        const savedFeature = localStorage.getItem('omni-usage-feature-v3');
+        const savedAccess = localStorage.getItem('omni-pro-access-v3');
 
         if (savedChat) setChatCount(parseInt(savedChat));
         if (savedFeature) setFeatureCount(parseInt(savedFeature));
@@ -45,7 +45,7 @@ export function UsageProvider({ children }: { children: ReactNode }) {
 
         const newCount = chatCount + 1;
         setChatCount(newCount);
-        localStorage.setItem('omni-usage-chat-v2', newCount.toString());
+        localStorage.setItem('omni-usage-chat-v3', newCount.toString());
         return true;
     };
 
@@ -58,13 +58,13 @@ export function UsageProvider({ children }: { children: ReactNode }) {
 
         const newCount = featureCount + 1;
         setFeatureCount(newCount);
-        localStorage.setItem('omni-usage-feature-v2', newCount.toString());
+        localStorage.setItem('omni-usage-feature-v3', newCount.toString());
         return true;
     };
 
     const unlockPro = () => {
         setHasAccess(true);
-        localStorage.setItem('omni-pro-access-v2', 'true');
+        localStorage.setItem('omni-pro-access-v3', 'true');
         setShowPaywall(false);
     };
 

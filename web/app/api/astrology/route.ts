@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
+
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 
 export async function POST(request: Request) {
@@ -8,18 +8,20 @@ export async function POST(request: Request) {
     const { date, time, place, locale } = body;
     const isZh = locale === 'zh';
 
-    if (!process.env.GEMINI_API_KEY) {
+    if (!process.env.OPENAI_API_KEY) {
       return NextResponse.json({
         content: isZh
-          ? "错误：未配置 Gemini API Key。"
-          : "Error: No Gemini API Key configured."
+          ? "错误：未配置 OpenAI API Key。"
+          : "Error: No OpenAI API Key configured."
       }, { status: 500 });
     }
 
-    const model = new ChatGoogleGenerativeAI({
-      model: "gemini-3-pro-preview",
+    // Reuse the Oracle's robust model
+    const { ChatOpenAI } = await import("@langchain/openai");
+    const model = new ChatOpenAI({
+      model: "gpt-4o",
       temperature: 0.7,
-      apiKey: process.env.GEMINI_API_KEY,
+      apiKey: process.env.OPENAI_API_KEY,
     });
 
     const systemPrompt = isZh
