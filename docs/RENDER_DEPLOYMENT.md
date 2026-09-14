@@ -1,6 +1,6 @@
 # Omni 记忆服务：Render 部署方案
 
-核对日期：2026-09-13。本文及 `deploy/render.yaml` 是可审核的部署配置；未创建 Render 服务、磁盘或付费资源。Docker 在本机不可用，镜像尚未经过实际构建/运行验收。
+核对日期：2026-09-13。本文及 `deploy/render.yaml` 是可审核的部署配置；尚未创建 Render 服务、磁盘或付费资源。代码提交 `17e855dacdc14a0f2c382d1250d59a10cf720c2b` 已通过 [GitHub Linux 容器验证](https://github.com/bz02/omni/actions/runs/34796813217)：镜像构建、94 项后端测试、非 root 启动、未授权访问及容器重建后的数据保留均通过。Render 实际部署及 Apple/模型端到端验收仍待完成。
 
 ## 费用与适用范围
 
