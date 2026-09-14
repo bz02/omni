@@ -1,0 +1,34 @@
+# Reviewed 2026-09-13. Creating this service incurs Render compute/storage charges.
+# Select this file explicitly as the Blueprint path. No credentials belong in Git.
+previews:
+  generation: "off"
+services:
+  - type: web
+    name: omni-memory-beta
+    runtime: docker
+    branch: codex/omni-memory-deployment
+    plan: 0.5c-512mb
+    region: oregon
+    numInstances: 1
+    dockerfilePath: ./backend/deploy/render/Dockerfile
+    dockerContext: ./backend
+    autoDeployTrigger: "off"
+    healthCheckPath: /health
+    maxShutdownDelaySeconds: 60
+    disk:
+      name: omni-memory-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: PORT
+        value: "10000"
+      - key: OMNI_MEMORY_DB
+        value: /var/data/omni/memory.sqlite3
+      - key: OMNI_MEMORY_SESSION_SECRET
+        generateValue: true
+      - key: OMNI_APPLE_BUNDLE_ID
+        value: omni.ai.Omni
+      - key: OMNI_APPLE_STORE_ENVIRONMENT
+        value: Sandbox
+      # Set Apple credentials, PEM root files and model configuration privately
+      # in Render after creation. Without them, login/subscriptions/chat fail closed.

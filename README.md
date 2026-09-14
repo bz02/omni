@@ -73,3 +73,8 @@ Replace mocks with real services behind your gateway. Keep PII scrubbing before 
 - Consent gating for geolocation/SDK usage (PIPL); no permissions until user accepts.
 - Encrypt in transit (TLS) and at rest; restrict DB with security groups; rotate keys.
 - Publish transparency label listing data collected, use, retention, and third-party SDKs.
+
+
+## Omni account memory backend
+
+This deployment branch adds the isolated Python account/memory service alongside the existing web app. Use [the Render deployment guide](docs/RENDER_DEPLOYMENT.md) and Blueprint path `deploy/render.yaml`. No real Apple or model credentials are stored here; those integrations remain unavailable until configured. CI builds the production container and verifies authentication and persistence with synthetic data.

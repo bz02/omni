@@ -1,0 +1,33 @@
+name: Memory backend container verification
+
+"on":
+  workflow_dispatch:
+  push:
+    branches: [codex/omni-memory-deployment]
+    paths: ["backend/**", "deploy/render.yaml", ".github/workflows/memory-backend-verify.yml", "scripts/verify_memory_container.py"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: memory-backend-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Build the Render image
+        run: docker build --pull -f backend/deploy/render/Dockerfile -t omni-memory-verify backend
+      - name: Run isolated backend tests inside Linux
+        run: |
+          docker run --rm --user 0:0 --entrypoint /bin/sh \
+            -v "$PWD/backend/tests:/tests:ro" \
+            -e PYTHONPATH=/app omni-memory-verify \
+            -c 'python -m pip install --no-cache-dir pytest==8.4.2 && python -m pytest /tests -q -p no:cacheprovider'
+      - name: Verify non-root startup, authorization and persistence across containers
+        run: python3 scripts/verify_memory_container.py omni-memory-verify
