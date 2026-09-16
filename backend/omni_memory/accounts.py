@@ -13,7 +13,7 @@ from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from fastapi import HTTPException
 
 from .apple_identity import AppleIdentityVerifier
-from .apple_subscription import AppleSubscriptionVerifier
+from .apple_subscription import AppleSubscriptionVerifier, STORE_ENVIRONMENTS
 from .auth import AUDIENCE, valid_secret, verify_session
 
 ACCESS_TTL = 900
@@ -39,10 +39,27 @@ class AccountService:
                     id TEXT PRIMARY KEY, nonce_hash TEXT NOT NULL, expires INTEGER NOT NULL);
                 CREATE TABLE IF NOT EXISTS account_auth_rates (
                     key TEXT NOT NULL, minute INTEGER NOT NULL, count INTEGER NOT NULL, PRIMARY KEY(key,minute));
-                CREATE TABLE IF NOT EXISTS account_subscriptions (
-                    subject TEXT PRIMARY KEY REFERENCES account_identities(subject), original_transaction_id TEXT UNIQUE NOT NULL,
-                    premium_until INTEGER NOT NULL DEFAULT 0, checked_at INTEGER NOT NULL DEFAULT 0);
             """)
+        # Keep schema replacement and entitlement invalidation in one real transaction.
+        with self.memory.db() as db:
+            columns = {row["name"] for row in db.execute("PRAGMA table_info(account_subscriptions)")}
+            legacy = bool(columns and "environment" not in columns)
+            if legacy:
+                db.execute("ALTER TABLE account_subscriptions RENAME TO account_subscriptions_legacy")
+            db.execute("""CREATE TABLE IF NOT EXISTS account_subscriptions (
+                subject TEXT NOT NULL REFERENCES account_identities(subject),
+                environment TEXT NOT NULL CHECK(environment IN ('','Production','Sandbox')),
+                original_transaction_id TEXT NOT NULL, premium_until INTEGER NOT NULL DEFAULT 0,
+                checked_at INTEGER NOT NULL DEFAULT 0, PRIMARY KEY(subject,environment),
+                UNIQUE(environment,original_transaction_id))""")
+            if legacy:
+                # An old row has no signed environment evidence. Preserve the binding for re-verification,
+                # but never infer its environment from the current deployment or retain its paid lease.
+                db.execute("""INSERT INTO account_subscriptions
+                    SELECT subject,'',original_transaction_id,0,0 FROM account_subscriptions_legacy""")
+                db.execute("""UPDATE accounts SET premium_until=0,revision=revision+1
+                    WHERE subject IN (SELECT subject FROM account_subscriptions_legacy)""")
+                db.execute("DROP TABLE account_subscriptions_legacy")
 
     def _now(self):
         return int(self.memory.clock())
@@ -176,17 +193,23 @@ class AccountService:
     async def authorize(self, authorization):
         subject = self.assert_active(authorization)
         with self.memory.db() as db:
-            row = db.execute("SELECT * FROM account_subscriptions WHERE subject=?", (subject,)).fetchone()
-        if row and self._now() - row["checked_at"] >= ENTITLEMENT_TTL:
+            rows = db.execute("SELECT * FROM account_subscriptions WHERE subject=?", (subject,)).fetchall()
+        for row in rows:
+            if row["environment"] not in self.subscriptions.environments or self._now() - row["checked_at"] < ENTITLEMENT_TTL:
+                continue
             try:
-                verified = await self.subscriptions.status(subject, row["original_transaction_id"])
+                verified = await self.subscriptions.status(subject, row["original_transaction_id"], environment=row["environment"])
                 self._save_entitlement(subject, verified, authorization=authorization)
             except HTTPException as error:
                 if error.status_code == 401:
                     raise
-                # An Apple outage removes paid privilege but cannot prevent export, correction or deletion.
+                # An outage removes only this environment's paid lease; it cannot override another verified purchase.
                 with self.memory.db() as db:
-                    db.execute("UPDATE accounts SET premium_until=0,revision=revision+1 WHERE subject=?", (subject,))
+                    db.execute("UPDATE account_subscriptions SET checked_at=0 WHERE subject=? AND environment=? AND original_transaction_id=?",
+                               (subject, row["environment"], row["original_transaction_id"]))
+        with self.memory.db() as db:
+            self.assert_active(authorization, db=db)
+            self._update_lease(db, subject)
         return self.assert_active(authorization)
 
     def logout(self, subject, refresh_token):
@@ -203,24 +226,38 @@ class AccountService:
             row = db.execute("SELECT a.*,i.deleting FROM accounts a JOIN account_identities i ON i.subject=a.subject WHERE a.subject=?", (subject,)).fetchone()
             if not row or row["deleting"]:
                 raise HTTPException(401, "Sign in to your account again.")
-            subscription = db.execute("SELECT premium_until FROM account_subscriptions WHERE subject=?", (subject,)).fetchone()
+            subscriptions = db.execute("SELECT * FROM account_subscriptions WHERE subject=?", (subject,)).fetchall()
             active = self.memory.paid(row)
-            return {"account_id": subject, "premium_until": subscription[0] if active and subscription else None, "premium_active": active}
+            expirations = [value["premium_until"] for value in subscriptions
+                           if value["environment"] in self.subscriptions.environments
+                           and min(value["premium_until"], value["checked_at"] + ENTITLEMENT_TTL) > self._now()]
+            active = active and bool(expirations)
+            return {"account_id": subject, "premium_until": max(expirations) if active else None, "premium_active": active}
+
+    def _update_lease(self, db, subject):
+        rows = db.execute("SELECT * FROM account_subscriptions WHERE subject=?", (subject,)).fetchall()
+        lease = max((min(row["premium_until"], row["checked_at"] + ENTITLEMENT_TTL) for row in rows
+                     if row["environment"] in self.subscriptions.environments), default=0)
+        db.execute("UPDATE accounts SET premium_until=?,revision=revision+1 WHERE subject=? AND premium_until<>?", (lease, subject, lease))
 
     def _save_entitlement(self, subject, verified, *, authorization=None):
+        if verified.environment not in STORE_ENVIRONMENTS or verified.environment not in self.subscriptions.environments:
+            raise HTTPException(422, "The App Store environment is not enabled.")
         with self.memory.db() as db:
             if authorization:
                 self.assert_active(authorization, db=db)
             row = db.execute("SELECT deleting FROM account_identities WHERE subject=?", (subject,)).fetchone()
             if not row or row[0]:
                 raise HTTPException(401, "Sign in to your account again.")
-            owner = db.execute("SELECT subject FROM account_subscriptions WHERE original_transaction_id=?", (verified.original_transaction_id,)).fetchone()
+            owner = db.execute("SELECT subject FROM account_subscriptions WHERE environment=? AND original_transaction_id=?",
+                               (verified.environment, verified.original_transaction_id)).fetchone()
             if owner and owner[0] != subject:
                 raise HTTPException(403, "This purchase is linked to another Omni account.")
-            db.execute("INSERT INTO account_subscriptions VALUES(?,?,?,?) ON CONFLICT(subject) DO UPDATE SET original_transaction_id=excluded.original_transaction_id,premium_until=excluded.premium_until,checked_at=excluded.checked_at",
-                       (subject, verified.original_transaction_id, verified.premium_until, self._now()))
-            lease = min(verified.premium_until, self._now() + ENTITLEMENT_TTL)
-            db.execute("UPDATE accounts SET premium_until=?,revision=revision+1 WHERE subject=?", (lease, subject))
+            db.execute("""INSERT INTO account_subscriptions VALUES(?,?,?,?,?) ON CONFLICT(subject,environment)
+                DO UPDATE SET original_transaction_id=excluded.original_transaction_id,premium_until=excluded.premium_until,checked_at=excluded.checked_at""",
+                       (subject, verified.environment, verified.original_transaction_id, verified.premium_until, self._now()))
+            db.execute("DELETE FROM account_subscriptions WHERE subject=? AND environment=''", (subject,))
+            self._update_lease(db, subject)
 
     async def subscription(self, subject, signed_transaction, *, authorization=None):
         verified = await self.subscriptions.verify(subject, signed_transaction)

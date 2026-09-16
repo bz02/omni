@@ -235,7 +235,7 @@ def store(accounts, clock, subject, *, status=1, **transaction_changes):
                 raise RuntimeError("Synthetic App Store outage")
             assert original == "10000000000001"
             return SimpleNamespace(data=[SimpleNamespace(lastTransactions=[SimpleNamespace(signedTransactionInfo=current["signed"], signedRenewalInfo=current["renewal"], status=current["status"])])])
-    accounts.subscriptions = AppleSubscriptionVerifier(verifier=verifier, client=Client(), products=[PRODUCT], clock=clock)
+    accounts.subscriptions = AppleSubscriptionVerifier(verifier=verifier, client=Client(), products=[PRODUCT], environment="Sandbox", clock=clock)
     return current, sign
 
 
