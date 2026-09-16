@@ -178,6 +178,7 @@ jobs:
         run: |
           # CommerceTests uses SKTestSession and verified Transaction entitlements.
           # The local StoreKit environment is shared, so do not parallelize it.
+          # Clear only this test build's live API URL; account tests use their own fixtures.
           xcodebuild test \
             -project Omni.xcodeproj \
             -scheme Omni \
@@ -188,6 +189,7 @@ jobs:
             -resultBundlePath "$OMNI_CI_ROOT/UnitTests.xcresult" \
             -parallel-testing-enabled NO \
             -only-testing:OmniTests \
+            OMNI_MEMORY_API_URL='' \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY='' DEVELOPMENT_TEAM='' \
             | tee "$OMNI_CI_ROOT/logs/unit-tests.log"
@@ -199,6 +201,7 @@ jobs:
         run: |
           # This suite supplies a fresh UUID in OMNI_TEST_STORAGE for every test.
           # Screenshots are XCTest attachments and contain authored test inputs.
+          # Keep offline journeys isolated; account journeys explicitly select loopback.
           xcodebuild test \
             -project Omni.xcodeproj \
             -scheme Omni \
@@ -211,6 +214,7 @@ jobs:
             -only-testing:OmniUITests/ClarityJourneyTests \
             -only-testing:OmniUITests/MemoryJourneyTests \
             -only-testing:OmniUITests/AccountJourneyTests \
+            OMNI_MEMORY_API_URL='' \
             CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY='' DEVELOPMENT_TEAM='' \
             | tee "$OMNI_CI_ROOT/logs/ui-tests.log"

@@ -37,8 +37,9 @@ struct PlusScreen: View {
                     VStack(alignment: .leading, spacing: 21) {
                         feature("heart", "More room to untangle", "Unlimited guided connection reflections, whenever you want to pause.")
                         feature("chart.bar.xaxis", "A gentler view of your week", "See your recorded feelings, evening reflections, and intentions together.")
-                        feature("brain.head.profile", "Remember what matters", "Choose and manage personal facts, preferences and goals in your private memory on this device.")
-                        feature("lock", "Personal stays personal", "Plus works on your device. Your journal is always yours to read and export.")
+                        feature("brain.head.profile", "Remember what matters", "Choose the details Omni remembers for future conversations. Review, edit or delete them any time.")
+                        feature("bubble.left.and.bubble.right", "Talk things through", "Sign in with Apple for online AI conversations. We'll ask for your permission before sharing conversation content with OpenAI.")
+                        feature("lock", "Your choices, your space", "Your journal stays on this iPhone. Syncing account memories and saved conversations is optional and asks for separate permission.")
                     }.padding(.vertical, 8)
                     if subscription.hasPremium {
                         OmniCard(color: OmniTheme.sage) { Label("Your Plus subscription is active", systemImage: "checkmark.seal.fill"); Text("Thank you for making space for yourself.").font(.subheadline) }
