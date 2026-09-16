@@ -1,9 +1,19 @@
 import SwiftUI
 
+// Hosted unit tests own their StoreKit listeners and account fixtures. The app's
+// scene must not independently consume or finish their synthetic transactions.
+private let isUnitTestHost: Bool = {
+    #if DEBUG
+    ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil || NSClassFromString("XCTestCase") != nil
+    #else
+    false
+    #endif
+}()
+
 @main
 struct OmniDailyApp: App {
     @StateObject private var store = ClarityStore()
-    @StateObject private var subscription = SubscriptionStore()
+    @StateObject private var subscription = SubscriptionStore(listenForStoreEvents: !isUnitTestHost)
     @StateObject private var account = AccountStore()
     @Environment(\.scenePhase) private var scenePhase
     var body: some Scene {
@@ -17,14 +27,17 @@ struct OmniDailyApp: App {
                 Button("OK") { store.errorMessage = nil }
             } message: { Text(store.errorMessage ?? "") }
             .task {
+                guard !isUnitTestHost else { return }
                 subscription.accountStore = account
                 await account.refreshAccount()
                 await subscription.refreshEntitlements()
                 await subscription.syncAccountEntitlements()
             }
+            .modifier(StorePurchasePresenter(subscription: subscription, account: account,
+                                             setupComplete: store.profile != nil && !store.recoveryRequired))
         }
         .onChange(of: scenePhase) { _, phase in
-            if phase == .active {
+            if phase == .active && !isUnitTestHost {
                 Task { await account.refreshAccount(); await subscription.refreshEntitlements(); await subscription.syncAccountEntitlements() }
             }
         }
