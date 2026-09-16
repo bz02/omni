@@ -64,7 +64,7 @@ final class AccountJourneyTests: XCTestCase {
         reveal(checkIn); checkIn.tap()
         XCTAssertTrue(app.buttons["Hopeful"].waitForExistence(timeout: 5)); app.buttons["Hopeful"].tap()
         let intention = app.descendants(matching: .any).matching(identifier: "field.One small thing I can do for myself").firstMatch
-        reveal(intention); intention.tap(); intention.typeText("A quiet walk without my phone")
+        enter("A quiet walk without my phone", in: intention)
         if app.keyboards.firstMatch.exists { app.buttons["keyboard.done"].firstMatch.tap() }
         reveal(app.buttons["checkin.save"]); app.buttons["checkin.save"].tap()
         selectTab("Journal")
@@ -91,6 +91,27 @@ final class AccountJourneyTests: XCTestCase {
         XCTAssertTrue(app.staticTexts["A quiet walk without my phone"].waitForExistence(timeout: 5))
         let screenshot = XCTAttachment(screenshot: app.screenshot())
         screenshot.name = "10-Guest-journal-after-account-failure"; screenshot.lifetime = .keepAlways; add(screenshot)
+    }
+
+    private func enter(_ text: String, in field: XCUIElement) {
+        XCTAssertTrue(field.waitForExistence(timeout: 5))
+        reveal(field)
+        var inputIsReady = false
+        // The first keyboard presentation can lag on a fresh simulator. The Done
+        // control is rendered only when this check-in field's FocusState is true.
+        for _ in 0..<2 {
+            field.tap()
+            if app.keyboards.firstMatch.waitForExistence(timeout: 5),
+               app.buttons["keyboard.done"].firstMatch.waitForExistence(timeout: 5) {
+                inputIsReady = true
+                break
+            }
+        }
+        XCTAssertTrue(inputIsReady, "The check-in field must show its keyboard and focused Done control before typing.")
+        guard inputIsReady else { return }
+        field.typeText(text)
+        let entered = XCTNSPredicateExpectation(predicate: NSPredicate(format: "value == %@", text), object: field)
+        XCTAssertEqual(XCTWaiter.wait(for: [entered], timeout: 5), .completed, "The authored intention must appear in the field before saving.")
     }
 
     private func selectTab(_ title: String) {
