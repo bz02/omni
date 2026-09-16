@@ -38,7 +38,7 @@ GID 1000 用于读取 Render 的 `/etc/secrets` 文件，这是 Render 对 Docke
 | `OMNI_APPLE_IAP_KEY_PATH` | `/etc/secrets/apple-iap.p8` |
 | `OMNI_APPLE_PLUS_PRODUCT_IDS` | 已创建且正确绑定到应用的月/年 Plus 商品 ID，逗号分隔 |
 | `OMNI_RENDER_ROOT_CERTIFICATE_PEM_FILES` | 例如 `/etc/secrets/AppleRootCA-G3.pem`；多个 Apple 根证书用冒号连接 |
-| `OMNI_APPLE_APP_ID` | Production 时必填的数字 App ID |
+| `OMNI_APPLE_APP_ID` | Production 或 ProductionAndSandbox 时必填；Omni 为 `6812658396` |
 | `OPENAI_API_KEY`、`OMNI_MEMORY_MODEL` | 模型账号密钥及实际可调用的模型名；先设账号消费上限 |
 
 Apple 的两份 `.p8` 文件放在同一页面的 Secret Files。Render 的文件输入是文本，因此 Apple 公共根证书应先在可信本地环境转换成 PEM，再存为 `.pem` secret file；不要把二进制 DER 直接粘贴进去。部署入口以非 root 身份把这些公共 PEM 转成临时 DER，并设置服务所需的 `OMNI_APPLE_ROOT_CERTIFICATES`。根证书只从 [Apple PKI](https://www.apple.com/certificateauthority/) 获取并核对来源，不使用登录、付款 SDK 自带的未知根证书。[Render Secret Files](https://render.com/docs/configure-environment-variables)
@@ -51,10 +51,10 @@ Apple 的两份 `.p8` 文件放在同一页面的 Secret Files。Render 的文�
 
 收费和登录获授权后，先部署到 Sandbox，按顺序验收：持久挂载及应用 UID → HTTPS 与未授权请求 401 → 真实 Apple 登录 → 真实商店沙盒订阅 → 在线回复 → 第二台设备同步 → 服务重启后数据仍在 → 登出和删除。未经配置时 `POST /v1/auth/challenge` 返回 503 是预期行为，不应绕过。
 
-测试令牌和 StoreKit 本地配置不构成真实 Apple 验收。切换到 Production 前需配置真实 app ID，确认 App Store 商品、账号 token 和签名环境一致，完成隐私政策与 iOS 隐私申报。
+测试令牌和 StoreKit 本地配置不构成真实 Apple 验收。隔离测试服务保留 `Sandbox`。App Store 提交版本使用的同一服务可显式配置 `ProductionAndSandbox`，并设置真实 app ID，以同时完整验证正式与审核/测试交易；严格 `Production` 仅接受正式交易。双环境不会信任客户端环境字段：先按 Production 验签，只在官方库确认环境不匹配后完整验证 Sandbox，随后固定查询已验签的环境。数据库分别记录两种环境，旧版无环境记录需要重新提交签名交易才能恢复权益。[实现、迁移与验收边界](../backend/README_ACCOUNTS.md#正式审核与测试交易环境)。启用前还需完成真实购买验收、隐私政策及 iOS 隐私申报。当前蓝图继续使用隔离的 Sandbox 默认值，本文没有修改线上环境或启用付费资源。
 
 以下运营事项仍是正式公开服务的前置工作：Apple 账号状态通知、删除请求中断的恢复操作、密钥轮换迁移、模型预算和错误告警、备份删除周期。Render 提供磁盘及自动快照的静态加密，但不能据此声称记忆正文有应用层加密或账号删除会立即擦除历史备份。数据库恢复可能恢复已撤销会话/旧内容，必须有恢复后的会话撤销和删除重放步骤。
 
 启动命令关闭访问日志，并保留不信任转发头的默认行为。Render 代理后的登录限流可能把多个用户视为同一来源；扩大测试前需按真实网络拓扑设置可信代理/边缘限制。不要简单相信任意 `X-Forwarded-For`，也不要把用户对话、令牌或交易正文接入日志采集。
 
-[账号配置详解](../backend/README_ACCOUNTS.md) · [通用部署说明](RENDER_DEPLOYMENT.md)
+[账号配置详解](../backend/README_ACCOUNTS.md) · [通用部署说明](MEMORY_DEPLOYMENT.md)

@@ -1,6 +1,6 @@
 # Omni 账号、Apple 订阅与记忆服务
 
-状态：真实 Apple 协议适配器和账户生命周期已实现，测试使用生成的 RSA/EC 密钥、合成证书和本地 HTTP 响应。尚未配置开发者密钥、部署域名、App Store Connect 产品或真实 Apple 沙盒账号，因此不能把测试通过描述为已上线。
+状态：真实 Apple 协议适配器和账户生命周期已实现，测试使用生成的 RSA/EC 密钥、合成证书和本地 HTTP 响应。尚未使用真实开发者凭据、部署服务和 Apple 沙盒购买完成端到端验收，因此不能把测试通过描述为已上线；商店记录与商品配置进度以 App Store Connect 实际状态为准。
 
 ## 账号合同
 
@@ -41,10 +41,24 @@
 | `OMNI_APPLE_ISSUER_ID` | App Store Connect API issuer ID |
 | `OMNI_APPLE_ROOT_CERTIFICATES` | 从 Apple PKI 下载的根证书 DER 文件路径，按平台路径分隔符连接（Linux/macOS 是冒号） |
 | `OMNI_APPLE_PLUS_PRODUCT_IDS` | 当前真实 Plus 产品 ID，逗号分隔 |
-| `OMNI_APPLE_STORE_ENVIRONMENT` | 必须明确 `Sandbox` 或 `Production`；禁止 Xcode/LocalTesting 跳过验签模式 |
-| `OMNI_APPLE_APP_ID` | 生产环境必填，App Store 数字 app ID |
+| `OMNI_APPLE_STORE_ENVIRONMENT` | 明确 `Sandbox`、`Production` 或 `ProductionAndSandbox`；最后一种用于同一服务接受正式及审核/测试交易，禁止 Xcode/LocalTesting 跳过验签模式 |
+| `OMNI_APPLE_APP_ID` | 包含 Production 时必填的正整数 App Store app ID；Omni 当前记录为 `6812658396` |
 
 身份验证配置不完整时，登录接口返回 503；订阅配置不完整时，订阅验证返回 503，不授予 Plus。Apple OAuth 私钥由 ES256 签发短期 client secret，用授权码换取 Apple 刷新令牌，后者通过 AES-GCM 加密保存。更换主服务密钥会使现有会话、身份映射与密文失效；上线后轮换需要明确迁移方案，不能直接替换环境变量。
+
+已注册的公开标识为 Team ID `MGFX73F82F`、Bundle ID `omni.ai.Omni` 和数字 app ID `6812658396`。这些值不是凭据，也不能替代实际 Key ID、Issuer ID、私钥和签名配置。此文档没有创建密钥或部署服务。
+
+## 正式、审核与测试交易环境
+
+隔离测试服务可保留 `Sandbox`；严格仅接受正式交易的服务用 `Production`。供 App Store 提交版本访问的同一个服务，可显式配置 `ProductionAndSandbox`，以接受 Apple 签名的正式交易和审核/测试交易。不要仅凭应用分发方式猜测交易环境，也不要让客户端提交 `sandbox=true` 来授予权益。
+
+双环境入口先调用官方 Production 验签器。仅当其抛出 `INVALID_ENVIRONMENT` 时，才把原始 JWS 交给官方 Sandbox 验签器重新完整验证。官方库先验证证书、签名和 bundle，再检查交易环境；伪造环境、错误证书、签名或 bundle、上游故障不会触发放宽验证。两个环境都启用在线证书检查，均要求同一认可的产品和匹配的 `appAccountToken`，并查询各自的 Apple 当前订阅状态；Xcode、LocalTesting 和未知环境始终拒绝。[Apple 官方验证实现](https://apple.github.io/app-store-server-library-python/_modules/appstoreserverlibrary/signed_data_verifier.html)
+
+成功验证后，数据库以 `(environment, original_transaction_id)` 约束购买归属，每个账号分别保存两个环境的订阅。后续验证只访问已经验证并保存的环境，不因失败转向另一个 API。Sandbox 的到期或故障不会覆盖仍有效的 Production 权益；从双环境改回单环境时，被禁用环境的缓存许可不能继续使用。Sandbox 交易用于审核/测试，并不代表真实营收，现有模型速率和预算限制仍需执行。
+
+旧版数据库没有交易环境，升级时会原子迁移并保留旧交易绑定，但撤销其未知环境的缓存权益；用户资料、会话和记忆不删除。应用再次提交 Apple 签名交易并完成服务端验证后恢复权益，不根据部署设置猜测旧记录的环境。迁移需要预先备份，并使用新的服务代码；不能把迁移后的数据库交回旧版服务。
+
+这些代码测试使用合成证书和本地 API 响应，尚不等于真实验收。开放前需用相同提交版本和服务验证真实 Sandbox 购买、恢复、续订、过期、账号隔离及聊天，并核对正式环境配置；审核之后也不能通过关闭 Sandbox 来隐瞒或替换审核时的功能。
 
 ## 订阅资格
 
