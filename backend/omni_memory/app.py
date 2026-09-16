@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.routing import APIRoute
 from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional
@@ -204,6 +206,26 @@ def create_app(service: MemoryService | None = None, *, managed_accounts: bool =
     def health():
         # Liveness only; never publish keys, user counts, paths or environment configuration.
         return {"status": "ok"}
+
+    public_directory = Path(__file__).resolve().parent / "public"
+    public_headers = {
+        "Cache-Control": "public, max-age=3600",
+        "Content-Security-Policy": "default-src 'none'; style-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+        "Referrer-Policy": "no-referrer",
+        "X-Content-Type-Options": "nosniff",
+    }
+
+    @app.get("/support", include_in_schema=False)
+    def support_page():
+        return FileResponse(public_directory / "support.html", media_type="text/html", headers=public_headers)
+
+    @app.get("/privacy", include_in_schema=False)
+    def privacy_page():
+        return FileResponse(public_directory / "privacy.html", media_type="text/html", headers=public_headers)
+
+    @app.get("/public/style.css", include_in_schema=False)
+    def public_stylesheet():
+        return FileResponse(public_directory / "style.css", media_type="text/css", headers=public_headers)
 
     app.include_router(create_router(service, account_service=account_service, snapshot_service=snapshots, allow_legacy_sessions=not managed_accounts))
     return app
