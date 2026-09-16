@@ -1,0 +1,712 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		DA30A5DD2F24B74200CDC5EE /* ChatView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA30A5CB2F24B74200CDC5EE /* ChatView.swift */; };
+		DA30A5DE2F24B74200CDC5EE /* OmniApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA30A5DB2F24B74200CDC5EE /* OmniApp.swift */; };
+		DA30A5DF2F24B74200CDC5EE /* EnergyProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA30A5D62F24B74200CDC5EE /* EnergyProfile.swift */; };
+		DA30A5E02F24B74200CDC5EE /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA30A5D82F24B74200CDC5EE /* AppState.swift */; };
+		DA30A5E12F24B74200CDC5EE /* DailyVibeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA30A5D12F24B74200CDC5EE /* DailyVibeView.swift */; };
+		DA30A5E22F24B74200CDC5EE /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA30A5CF2F24B74200CDC5EE /* OnboardingView.swift */; };
+		DA30A5E32F24B74200CDC5EE /* ViralViews.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA30A5D32F24B74200CDC5EE /* ViralViews.swift */; };
+		DA30A5E42F24B74200CDC5EE /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA30A5CD2F24B74200CDC5EE /* HomeView.swift */; };
+		DA30A5E52F24B74200CDC5EE /* Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = DA30A5DA2F24B74200CDC5EE /* Info.plist */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		DA30A5AF2F24B6DB00CDC5EE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DA30A5952F24B6D900CDC5EE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DA30A59C2F24B6DA00CDC5EE;
+			remoteInfo = Omni;
+		};
+		DA30A5B92F24B6DB00CDC5EE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DA30A5952F24B6D900CDC5EE /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DA30A59C2F24B6DA00CDC5EE;
+			remoteInfo = Omni;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		DA30A59D2F24B6DA00CDC5EE /* Omni.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Omni.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DA30A5AE2F24B6DB00CDC5EE /* OmniTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OmniTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DA30A5B82F24B6DB00CDC5EE /* OmniUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = OmniUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		DA30A5CB2F24B74200CDC5EE /* ChatView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatView.swift; sourceTree = "<group>"; };
+		DA30A5CD2F24B74200CDC5EE /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		DA30A5CF2F24B74200CDC5EE /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		DA30A5D12F24B74200CDC5EE /* DailyVibeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyVibeView.swift; sourceTree = "<group>"; };
+		DA30A5D32F24B74200CDC5EE /* ViralViews.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViralViews.swift; sourceTree = "<group>"; };
+		DA30A5D62F24B74200CDC5EE /* EnergyProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnergyProfile.swift; sourceTree = "<group>"; };
+		DA30A5D82F24B74200CDC5EE /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		DA30A5DA2F24B74200CDC5EE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		DA30A5DB2F24B74200CDC5EE /* OmniApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OmniApp.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		DA30A59F2F24B6DA00CDC5EE /* Omni */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Omni;
+			sourceTree = "<group>";
+		};
+		DA30A5B12F24B6DB00CDC5EE /* OmniTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = OmniTests;
+			sourceTree = "<group>";
+		};
+		DA30A5BB2F24B6DB00CDC5EE /* OmniUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = OmniUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		DA30A59A2F24B6DA00CDC5EE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DA30A5AB2F24B6DB00CDC5EE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DA30A5B52F24B6DB00CDC5EE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		DA30A5942F24B6D900CDC5EE = {
+			isa = PBXGroup;
+			children = (
+				DA30A59F2F24B6DA00CDC5EE /* Omni */,
+				DA30A5B12F24B6DB00CDC5EE /* OmniTests */,
+				DA30A5BB2F24B6DB00CDC5EE /* OmniUITests */,
+				DA30A59E2F24B6DA00CDC5EE /* Products */,
+				DA30A5DC2F24B74200CDC5EE /* Omni 2 */,
+			);
+			sourceTree = "<group>";
+		};
+		DA30A59E2F24B6DA00CDC5EE /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DA30A59D2F24B6DA00CDC5EE /* Omni.app */,
+				DA30A5AE2F24B6DB00CDC5EE /* OmniTests.xctest */,
+				DA30A5B82F24B6DB00CDC5EE /* OmniUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		DA30A5CC2F24B74200CDC5EE /* Chat */ = {
+			isa = PBXGroup;
+			children = (
+				DA30A5CB2F24B74200CDC5EE /* ChatView.swift */,
+			);
+			path = Chat;
+			sourceTree = "<group>";
+		};
+		DA30A5CE2F24B74200CDC5EE /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				DA30A5CD2F24B74200CDC5EE /* HomeView.swift */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+		DA30A5D02F24B74200CDC5EE /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				DA30A5CF2F24B74200CDC5EE /* OnboardingView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
+		DA30A5D22F24B74200CDC5EE /* Retention */ = {
+			isa = PBXGroup;
+			children = (
+				DA30A5D12F24B74200CDC5EE /* DailyVibeView.swift */,
+			);
+			path = Retention;
+			sourceTree = "<group>";
+		};
+		DA30A5D42F24B74200CDC5EE /* Viral */ = {
+			isa = PBXGroup;
+			children = (
+				DA30A5D32F24B74200CDC5EE /* ViralViews.swift */,
+			);
+			path = Viral;
+			sourceTree = "<group>";
+		};
+		DA30A5D52F24B74200CDC5EE /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				DA30A5CC2F24B74200CDC5EE /* Chat */,
+				DA30A5CE2F24B74200CDC5EE /* Home */,
+				DA30A5D02F24B74200CDC5EE /* Onboarding */,
+				DA30A5D22F24B74200CDC5EE /* Retention */,
+				DA30A5D42F24B74200CDC5EE /* Viral */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		DA30A5D72F24B74200CDC5EE /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				DA30A5D62F24B74200CDC5EE /* EnergyProfile.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		DA30A5D92F24B74200CDC5EE /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				DA30A5D72F24B74200CDC5EE /* Models */,
+				DA30A5D82F24B74200CDC5EE /* AppState.swift */,
+			);
+			path = Shared;
+			sourceTree = "<group>";
+		};
+		DA30A5DC2F24B74200CDC5EE /* Omni 2 */ = {
+			isa = PBXGroup;
+			children = (
+				DA30A5D52F24B74200CDC5EE /* Features */,
+				DA30A5D92F24B74200CDC5EE /* Shared */,
+				DA30A5DA2F24B74200CDC5EE /* Info.plist */,
+				DA30A5DB2F24B74200CDC5EE /* OmniApp.swift */,
+			);
+			path = "Omni 2";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		DA30A59C2F24B6DA00CDC5EE /* Omni */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DA30A5C22F24B6DB00CDC5EE /* Build configuration list for PBXNativeTarget "Omni" */;
+			buildPhases = (
+				DA30A5992F24B6DA00CDC5EE /* Sources */,
+				DA30A59A2F24B6DA00CDC5EE /* Frameworks */,
+				DA30A59B2F24B6DA00CDC5EE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				DA30A59F2F24B6DA00CDC5EE /* Omni */,
+			);
+			name = Omni;
+			packageProductDependencies = (
+			);
+			productName = Omni;
+			productReference = DA30A59D2F24B6DA00CDC5EE /* Omni.app */;
+			productType = "com.apple.product-type.application";
+		};
+		DA30A5AD2F24B6DB00CDC5EE /* OmniTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DA30A5C52F24B6DB00CDC5EE /* Build configuration list for PBXNativeTarget "OmniTests" */;
+			buildPhases = (
+				DA30A5AA2F24B6DB00CDC5EE /* Sources */,
+				DA30A5AB2F24B6DB00CDC5EE /* Frameworks */,
+				DA30A5AC2F24B6DB00CDC5EE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DA30A5B02F24B6DB00CDC5EE /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				DA30A5B12F24B6DB00CDC5EE /* OmniTests */,
+			);
+			name = OmniTests;
+			packageProductDependencies = (
+			);
+			productName = OmniTests;
+			productReference = DA30A5AE2F24B6DB00CDC5EE /* OmniTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		DA30A5B72F24B6DB00CDC5EE /* OmniUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DA30A5C82F24B6DB00CDC5EE /* Build configuration list for PBXNativeTarget "OmniUITests" */;
+			buildPhases = (
+				DA30A5B42F24B6DB00CDC5EE /* Sources */,
+				DA30A5B52F24B6DB00CDC5EE /* Frameworks */,
+				DA30A5B62F24B6DB00CDC5EE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DA30A5BA2F24B6DB00CDC5EE /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				DA30A5BB2F24B6DB00CDC5EE /* OmniUITests */,
+			);
+			name = OmniUITests;
+			packageProductDependencies = (
+			);
+			productName = OmniUITests;
+			productReference = DA30A5B82F24B6DB00CDC5EE /* OmniUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		DA30A5952F24B6D900CDC5EE /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1620;
+				LastUpgradeCheck = 1620;
+				TargetAttributes = {
+					DA30A59C2F24B6DA00CDC5EE = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					DA30A5AD2F24B6DB00CDC5EE = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = DA30A59C2F24B6DA00CDC5EE;
+					};
+					DA30A5B72F24B6DB00CDC5EE = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = DA30A59C2F24B6DA00CDC5EE;
+					};
+				};
+			};
+			buildConfigurationList = DA30A5982F24B6D900CDC5EE /* Build configuration list for PBXProject "Omni" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = DA30A5942F24B6D900CDC5EE;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = DA30A59E2F24B6DA00CDC5EE /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				DA30A59C2F24B6DA00CDC5EE /* Omni */,
+				DA30A5AD2F24B6DB00CDC5EE /* OmniTests */,
+				DA30A5B72F24B6DB00CDC5EE /* OmniUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		DA30A59B2F24B6DA00CDC5EE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DA30A5AC2F24B6DB00CDC5EE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DA30A5B62F24B6DB00CDC5EE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		DA30A5992F24B6DA00CDC5EE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DA30A5AA2F24B6DB00CDC5EE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DA30A5B42F24B6DB00CDC5EE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		DA30A5B02F24B6DB00CDC5EE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DA30A59C2F24B6DA00CDC5EE /* Omni */;
+			targetProxy = DA30A5AF2F24B6DB00CDC5EE /* PBXContainerItemProxy */;
+		};
+		DA30A5BA2F24B6DB00CDC5EE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DA30A59C2F24B6DA00CDC5EE /* Omni */;
+			targetProxy = DA30A5B92F24B6DB00CDC5EE /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		DA30A5C02F24B6DB00CDC5EE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		DA30A5C12F24B6DB00CDC5EE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		DA30A5C32F24B6DB00CDC5EE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Configuration/OmniAccounts.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Omni/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_OMNI_MEMORY_API_URL = "$(OMNI_MEMORY_API_URL)";
+				INFOPLIST_KEY_OMNI_PRIVACY_URL = "$(OMNI_PRIVACY_URL)";
+				INFOPLIST_KEY_OMNI_SUPPORT_URL = "$(OMNI_SUPPORT_URL)";
+				OMNI_MEMORY_API_URL = "";
+				OMNI_PRIVACY_URL = "";
+				OMNI_SUPPORT_URL = "";
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 15.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = omni.ai.Omni;
+				INFOPLIST_KEY_CFBundleDisplayName = Omni;
+				SUPPORTS_MACCATALYST = NO;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				XROS_DEPLOYMENT_TARGET = 2.2;
+			};
+			name = Debug;
+		};
+		DA30A5C42F24B6DB00CDC5EE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Configuration/OmniAccounts.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"Omni/Preview Content\"";
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_OMNI_MEMORY_API_URL = "$(OMNI_MEMORY_API_URL)";
+				INFOPLIST_KEY_OMNI_PRIVACY_URL = "$(OMNI_PRIVACY_URL)";
+				INFOPLIST_KEY_OMNI_SUPPORT_URL = "$(OMNI_SUPPORT_URL)";
+				OMNI_MEMORY_API_URL = "";
+				OMNI_PRIVACY_URL = "";
+				OMNI_SUPPORT_URL = "";
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphoneos*]" = YES;
+				"INFOPLIST_KEY_UILaunchScreen_Generation[sdk=iphonesimulator*]" = YES;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphoneos*]" = UIStatusBarStyleDefault;
+				"INFOPLIST_KEY_UIStatusBarStyle[sdk=iphonesimulator*]" = UIStatusBarStyleDefault;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
+				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
+				MACOSX_DEPLOYMENT_TARGET = 15.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = omni.ai.Omni;
+				INFOPLIST_KEY_CFBundleDisplayName = Omni;
+				SUPPORTS_MACCATALYST = NO;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				XROS_DEPLOYMENT_TARGET = 2.2;
+			};
+			name = Release;
+		};
+		DA30A5C62F24B6DB00CDC5EE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MACOSX_DEPLOYMENT_TARGET = 15.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = omni.ai.OmniTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Omni.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Omni";
+				XROS_DEPLOYMENT_TARGET = 2.2;
+			};
+			name = Debug;
+		};
+		DA30A5C72F24B6DB00CDC5EE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MACOSX_DEPLOYMENT_TARGET = 15.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = omni.ai.OmniTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Omni.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Omni";
+				XROS_DEPLOYMENT_TARGET = 2.2;
+			};
+			name = Release;
+		};
+		DA30A5C92F24B6DB00CDC5EE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MACOSX_DEPLOYMENT_TARGET = 15.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = omni.ai.OmniUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Omni;
+				XROS_DEPLOYMENT_TARGET = 2.2;
+			};
+			name = Debug;
+		};
+		DA30A5CA2F24B6DB00CDC5EE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.2;
+				MACOSX_DEPLOYMENT_TARGET = 15.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = omni.ai.OmniUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Omni;
+				XROS_DEPLOYMENT_TARGET = 2.2;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		DA30A5982F24B6D900CDC5EE /* Build configuration list for PBXProject "Omni" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DA30A5C02F24B6DB00CDC5EE /* Debug */,
+				DA30A5C12F24B6DB00CDC5EE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DA30A5C22F24B6DB00CDC5EE /* Build configuration list for PBXNativeTarget "Omni" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DA30A5C32F24B6DB00CDC5EE /* Debug */,
+				DA30A5C42F24B6DB00CDC5EE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DA30A5C52F24B6DB00CDC5EE /* Build configuration list for PBXNativeTarget "OmniTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DA30A5C62F24B6DB00CDC5EE /* Debug */,
+				DA30A5C72F24B6DB00CDC5EE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DA30A5C82F24B6DB00CDC5EE /* Build configuration list for PBXNativeTarget "OmniUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DA30A5C92F24B6DB00CDC5EE /* Debug */,
+				DA30A5CA2F24B6DB00CDC5EE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = DA30A5952F24B6D900CDC5EE /* Project object */;
+}

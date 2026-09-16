@@ -1,0 +1,191 @@
+name: iOS release verification (no distribution signing)
+
+"on":
+  push:
+    branches:
+      - codex/omni-ios-release
+    paths:
+      - "Omni/**"
+      - "Omni.xcodeproj/project.pbxproj"
+      - "Omni.xcodeproj/xcshareddata/xcschemes/**"
+      - "OmniTests/**"
+      - "OmniUITests/**"
+      - "Configuration/**"
+      - ".github/workflows/ios-verify.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    # Official runner-images mapping checked 2026-09-16: macos-26 is ARM64.
+    runs-on: macos-26
+    timeout-minutes: 60
+    env:
+      # Fail if this version is removed; never silently use the runner default.
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    defaults:
+      run:
+        shell: bash
+    # Manual runs on other branches must not start this release verification job.
+    if: github.ref == 'refs/heads/codex/omni-ios-release'
+    steps:
+      - name: Check out the selected revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Verify Xcode and local StoreKit fixtures
+        id: toolchain
+        run: |
+          omni_ci_root="$RUNNER_TEMP/omni-ios-verify"
+          mkdir -p "$omni_ci_root/logs"
+          printf 'OMNI_CI_ROOT=%s\n' "$omni_ci_root" >> "$GITHUB_ENV"
+          test -d "$DEVELOPER_DIR"
+          xcodebuild -version | tee "$omni_ci_root/logs/toolchain.txt"
+          test "$(xcodebuild -version | head -n 1)" = "Xcode 26.3"
+          test "$(uname -m)" = "arm64"
+          xcrun --sdk iphoneos --show-sdk-version | tee -a "$omni_ci_root/logs/toolchain.txt"
+          test "$(xcrun --sdk iphoneos --show-sdk-version)" = "26.2"
+          printf 'Commit: %s\n' "$GITHUB_SHA" >> "$omni_ci_root/logs/toolchain.txt"
+          test -f Omni.xcodeproj/xcshareddata/xcschemes/Omni.xcscheme
+          cmp Configuration/Omni.storekit OmniTests/Fixtures/Omni.storekit
+          cmp Configuration/Omni.storekit OmniUITests/Fixtures/Omni.storekit
+
+      - name: Archive for iOS without distribution signing
+        id: archive
+        timeout-minutes: 15
+        run: |
+          xcodebuild archive \
+            -project Omni.xcodeproj \
+            -scheme Omni \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$OMNI_CI_ROOT/Omni-unsigned.xcarchive" \
+            -derivedDataPath "$OMNI_CI_ROOT/ArchiveDerivedData" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY='' DEVELOPMENT_TEAM='' \
+            | tee "$OMNI_CI_ROOT/logs/archive.log"
+          test -f "$OMNI_CI_ROOT/Omni-unsigned.xcarchive/Info.plist"
+          test -d "$OMNI_CI_ROOT/Omni-unsigned.xcarchive/Products/Applications/Omni.app"
+
+      - name: Select an available iPhone simulator for the selected SDK
+        id: simulator
+        if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
+        timeout-minutes: 5
+        run: |
+          xcrun simctl list --json > "$OMNI_CI_ROOT/simulators.json"
+          xcrun --sdk iphonesimulator --show-sdk-version > "$OMNI_CI_ROOT/simulator-sdk.txt"
+          python3 <<'PY'
+          import json
+          import os
+          import uuid
+          from pathlib import Path
+
+          root = Path(os.environ['OMNI_CI_ROOT'])
+          inventory = json.loads((root / 'simulators.json').read_text())
+          sdk = tuple(map(int, (root / 'simulator-sdk.txt').read_text().strip().split('.')[:2]))
+          candidates = []
+          for runtime in inventory['runtimes']:
+              if not runtime.get('isAvailable') or '.iOS-' not in runtime['identifier']:
+                  continue
+              version = tuple(map(int, runtime['version'].split('.')))
+              if not (26, 0) <= version[:2] <= sdk:
+                  continue
+              for device in inventory['devices'].get(runtime['identifier'], []):
+                  if device.get('isAvailable') and device['name'].startswith('iPhone'):
+                      candidates.append((version, device['name'], device))
+          if not candidates:
+              raise SystemExit('No available iPhone with an iOS 26 runtime compatible with this SDK.')
+          version, name, device = sorted(candidates, key=lambda item: (item[0], item[1]))[-1]
+          identifier = str(uuid.UUID(device['udid']))
+          if device['state'] not in ('Booted', 'Shutdown'):
+              raise SystemExit('Selected simulator is not in a usable state.')
+          with open(os.environ['GITHUB_ENV'], 'a') as output:
+              output.write(f'OMNI_SIMULATOR_ID={identifier}\n')
+              output.write(f'OMNI_SIMULATOR_STATE={device["state"]}\n')
+          (root / 'simulator-id.txt').write_text(identifier)
+          (root / 'simulator-state.txt').write_text(device['state'])
+          (root / 'logs' / 'simulator.txt').write_text(
+              f'{name}, iOS {".".join(map(str, version))}, {identifier}\n')
+          print(f'Selected {name}, iOS {".".join(map(str, version))}')
+          PY
+          omni_simulator_id="$(cat "$OMNI_CI_ROOT/simulator-id.txt")"
+          if [ "$(cat "$OMNI_CI_ROOT/simulator-state.txt")" = 'Shutdown' ]; then
+            xcrun simctl boot "$omni_simulator_id"
+          fi
+          xcrun simctl bootstatus "$omni_simulator_id" -b
+
+      - name: Run unit tests and real local StoreKit lifecycle tests
+        id: unit_tests
+        if: ${{ !cancelled() && steps.simulator.outcome == 'success' }}
+        timeout-minutes: 15
+        run: |
+          # CommerceTests uses SKTestSession and verified Transaction entitlements.
+          # The local StoreKit environment is shared, so do not parallelize it.
+          xcodebuild test \
+            -project Omni.xcodeproj \
+            -scheme Omni \
+            -configuration Debug \
+            -destination "platform=iOS Simulator,id=$OMNI_SIMULATOR_ID" \
+            -destination-timeout 120 \
+            -derivedDataPath "$OMNI_CI_ROOT/TestDerivedData" \
+            -resultBundlePath "$OMNI_CI_ROOT/UnitTests.xcresult" \
+            -parallel-testing-enabled NO \
+            -only-testing:OmniTests \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY='' DEVELOPMENT_TEAM='' \
+            | tee "$OMNI_CI_ROOT/logs/unit-tests.log"
+
+      - name: Run all three isolated user journey suites
+        id: ui_tests
+        if: ${{ !cancelled() && steps.simulator.outcome == 'success' }}
+        timeout-minutes: 15
+        run: |
+          # This suite supplies a fresh UUID in OMNI_TEST_STORAGE for every test.
+          # Screenshots are XCTest attachments and contain authored test inputs.
+          xcodebuild test \
+            -project Omni.xcodeproj \
+            -scheme Omni \
+            -configuration Debug \
+            -destination "platform=iOS Simulator,id=$OMNI_SIMULATOR_ID" \
+            -destination-timeout 120 \
+            -derivedDataPath "$OMNI_CI_ROOT/TestDerivedData" \
+            -resultBundlePath "$OMNI_CI_ROOT/UITests.xcresult" \
+            -parallel-testing-enabled NO \
+            -only-testing:OmniUITests/ClarityJourneyTests \
+            -only-testing:OmniUITests/MemoryJourneyTests \
+            -only-testing:OmniUITests/AccountJourneyTests \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY='' DEVELOPMENT_TEAM='' \
+            | tee "$OMNI_CI_ROOT/logs/ui-tests.log"
+
+      - name: Write result summary
+        if: ${{ always() }}
+        env:
+          ARCHIVE_OUTCOME: ${{ steps.archive.outcome }}
+          UNIT_OUTCOME: ${{ steps.unit_tests.outcome }}
+          UI_OUTCOME: ${{ steps.ui_tests.outcome }}
+        run: |
+          {
+            printf '## Omni iOS verification\n\n'
+            printf '| Check | Result |\n| --- | --- |\n'
+            printf '| iOS archive without distribution signing | %s |\n' "$ARCHIVE_OUTCOME"
+            printf '| Unit tests, including Apple StoreKitTest | %s |\n' "$UNIT_OUTCOME"
+            printf '| Clarity, memory, and account UI journeys | %s |\n' "$UI_OUTCOME"
+            printf '\nXcode 26.3 / iOS 26.2 SDK on macos-26 (ARM64).\n'
+            printf '\nThe archive is not a signed IPA and cannot be submitted as-is.\n'
+            printf 'Local StoreKit tests make no real purchases. UI screenshots use synthetic inputs.\n'
+            printf 'No Apple account, certificate, provisioning profile, or App Store upload is used.\n'
+            printf 'No artifact upload, cache upload, or archive packaging step is configured.\n'
+            printf 'Build logs and this summary remain in the workflow run; temporary build files expire with the runner.\n'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Shut down the selected simulator
+        if: ${{ always() && steps.simulator.outcome == 'success' }}
+        run: xcrun simctl shutdown "$OMNI_SIMULATOR_ID"
