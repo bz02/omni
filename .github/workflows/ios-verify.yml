@@ -103,7 +103,9 @@ jobs:
           if not candidates:
               raise SystemExit('No available iPhone with an iOS 26 runtime compatible with this SDK.')
           version, name, device = sorted(candidates, key=lambda item: (item[0], item[1]))[-1]
-          identifier = str(uuid.UUID(device['udid']))
+          # Validate without lowercasing: xcodebuild matches the original UDID.
+          identifier = device['udid']
+          uuid.UUID(identifier)
           if device['state'] not in ('Booted', 'Shutdown'):
               raise SystemExit('Selected simulator is not in a usable state.')
           with open(os.environ['GITHUB_ENV'], 'a') as output:
@@ -119,7 +121,48 @@ jobs:
           if [ "$(cat "$OMNI_CI_ROOT/simulator-state.txt")" = 'Shutdown' ]; then
             xcrun simctl boot "$omni_simulator_id"
           fi
-          xcrun simctl bootstatus "$omni_simulator_id" -b
+          xcrun simctl bootstatus "$omni_simulator_id" -b \
+            | tee "$OMNI_CI_ROOT/logs/simulator-boot.txt"
+          xcrun simctl list devices --json > "$OMNI_CI_ROOT/booted-simulators.json"
+          python3 <<'PY_BOOT'
+          import json
+          import os
+          from pathlib import Path
+
+          root = Path(os.environ['OMNI_CI_ROOT'])
+          identifier = (root / 'simulator-id.txt').read_text()
+          boot_log = (root / 'logs' / 'simulator-boot.txt').read_text()
+          # Some simctl versions return zero even after migration has failed.
+          if 'Data Migration Failed' in boot_log or 'Failed to boot' in boot_log:
+              raise SystemExit('Simulator boot failed; no tests have run.')
+          inventory = json.loads((root / 'booted-simulators.json').read_text())
+          selected = [device for devices in inventory['devices'].values()
+                      for device in devices if device['udid'] == identifier]
+          if len(selected) != 1 or selected[0]['state'] != 'Booted':
+              raise SystemExit('Selected simulator did not reach the Booted state.')
+          PY_BOOT
+          xcodebuild -showdestinations \
+            -project Omni.xcodeproj -scheme Omni \
+            -destination-timeout 30 \
+            | tee "$OMNI_CI_ROOT/logs/destinations.txt"
+          python3 <<'PY_DESTINATION'
+          import os
+          import re
+          from pathlib import Path
+
+          root = Path(os.environ['OMNI_CI_ROOT'])
+          identifier = (root / 'simulator-id.txt').read_text()
+          output = (root / 'logs' / 'destinations.txt').read_text()
+          available = output.split('Available destinations for', 1)[-1]
+          available = available.split('Ineligible destinations for', 1)[0]
+          matches = [line for line in available.splitlines()
+                     if 'platform:iOS Simulator,' in line
+                     and 'arch:arm64,' in line
+                     and re.search(r'\bid:' + re.escape(identifier) + r'[, }]', line)]
+          if not matches:
+              raise SystemExit('Selected ARM64 simulator is not an available Xcode destination.')
+          print('Confirmed the exact simulator UDID is available to xcodebuild on ARM64.')
+          PY_DESTINATION
 
       - name: Run unit tests and real local StoreKit lifecycle tests
         id: unit_tests
@@ -132,7 +175,7 @@ jobs:
             -project Omni.xcodeproj \
             -scheme Omni \
             -configuration Debug \
-            -destination "platform=iOS Simulator,id=$OMNI_SIMULATOR_ID" \
+            -destination "platform=iOS Simulator,arch=arm64,id=$OMNI_SIMULATOR_ID" \
             -destination-timeout 120 \
             -derivedDataPath "$OMNI_CI_ROOT/TestDerivedData" \
             -resultBundlePath "$OMNI_CI_ROOT/UnitTests.xcresult" \
@@ -153,7 +196,7 @@ jobs:
             -project Omni.xcodeproj \
             -scheme Omni \
             -configuration Debug \
-            -destination "platform=iOS Simulator,id=$OMNI_SIMULATOR_ID" \
+            -destination "platform=iOS Simulator,arch=arm64,id=$OMNI_SIMULATOR_ID" \
             -destination-timeout 120 \
             -derivedDataPath "$OMNI_CI_ROOT/TestDerivedData" \
             -resultBundlePath "$OMNI_CI_ROOT/UITests.xcresult" \
