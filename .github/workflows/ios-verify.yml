@@ -74,7 +74,7 @@ jobs:
           test -f "$OMNI_CI_ROOT/Omni-unsigned.xcarchive/Info.plist"
           test -d "$OMNI_CI_ROOT/Omni-unsigned.xcarchive/Products/Applications/Omni.app"
 
-      - name: Select an available iPhone simulator for the selected SDK
+      - name: Create an isolated iPhone simulator for the selected SDK
         id: simulator
         if: ${{ !cancelled() && steps.toolchain.outcome == 'success' }}
         timeout-minutes: 5
@@ -84,43 +84,47 @@ jobs:
           python3 <<'PY'
           import json
           import os
+          import subprocess
           import uuid
           from pathlib import Path
 
           root = Path(os.environ['OMNI_CI_ROOT'])
           inventory = json.loads((root / 'simulators.json').read_text())
           sdk = tuple(map(int, (root / 'simulator-sdk.txt').read_text().strip().split('.')[:2]))
-          candidates = []
+          runtimes = []
           for runtime in inventory['runtimes']:
               if not runtime.get('isAvailable') or '.iOS-' not in runtime['identifier']:
                   continue
               version = tuple(map(int, runtime['version'].split('.')))
-              if not (26, 0) <= version[:2] <= sdk:
-                  continue
-              for device in inventory['devices'].get(runtime['identifier'], []):
-                  if device.get('isAvailable') and device['name'].startswith('iPhone'):
-                      candidates.append((version, device['name'], device))
-          if not candidates:
-              raise SystemExit('No available iPhone with an iOS 26 runtime compatible with this SDK.')
-          version, name, device = sorted(candidates, key=lambda item: (item[0], item[1]))[-1]
+              if (26, 0) <= version[:2] <= sdk:
+                  runtimes.append((version, runtime))
+          if not runtimes:
+              raise SystemExit('No available iOS 26 runtime compatible with this SDK.')
+          version, runtime = max(runtimes, key=lambda item: item[0])
+          device_types = [item for item in inventory['devicetypes']
+                          if item['name'] == 'iPhone 17']
+          if len(device_types) != 1:
+              raise SystemExit('The expected iPhone 17 simulator device type is not installed.')
+          # Do not reuse a pre-created device whose migration state belongs to the runner image.
+          name = f'Omni-CI-{os.environ["GITHUB_RUN_ID"]}-{os.environ["GITHUB_RUN_ATTEMPT"]}'
+          identifier = subprocess.check_output([
+              'xcrun', 'simctl', 'create', name,
+              device_types[0]['identifier'], runtime['identifier'],
+          ], text=True).strip()
           # Validate without lowercasing: xcodebuild matches the original UDID.
-          identifier = device['udid']
           uuid.UUID(identifier)
-          if device['state'] not in ('Booted', 'Shutdown'):
-              raise SystemExit('Selected simulator is not in a usable state.')
+          (root / 'simulator-id.txt').write_text(identifier)
           with open(os.environ['GITHUB_ENV'], 'a') as output:
               output.write(f'OMNI_SIMULATOR_ID={identifier}\n')
-              output.write(f'OMNI_SIMULATOR_STATE={device["state"]}\n')
-          (root / 'simulator-id.txt').write_text(identifier)
-          (root / 'simulator-state.txt').write_text(device['state'])
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              # Publish immediately so cleanup also runs after a failed boot.
+              output.write(f'identifier={identifier}\n')
           (root / 'logs' / 'simulator.txt').write_text(
-              f'{name}, iOS {".".join(map(str, version))}, {identifier}\n')
-          print(f'Selected {name}, iOS {".".join(map(str, version))}')
+              f'{name}, iPhone 17, iOS {".".join(map(str, version))}, {identifier}\n')
+          print(f'Created isolated iPhone 17, iOS {".".join(map(str, version))}, {identifier}')
           PY
           omni_simulator_id="$(cat "$OMNI_CI_ROOT/simulator-id.txt")"
-          if [ "$(cat "$OMNI_CI_ROOT/simulator-state.txt")" = 'Shutdown' ]; then
-            xcrun simctl boot "$omni_simulator_id"
-          fi
+          xcrun simctl boot "$omni_simulator_id"
           xcrun simctl bootstatus "$omni_simulator_id" -b \
             | tee "$OMNI_CI_ROOT/logs/simulator-boot.txt"
           xcrun simctl list devices --json > "$OMNI_CI_ROOT/booted-simulators.json"
@@ -141,6 +145,9 @@ jobs:
           if len(selected) != 1 or selected[0]['state'] != 'Booted':
               raise SystemExit('Selected simulator did not reach the Booted state.')
           PY_BOOT
+          # Confirm the booted simulator can execute a request, not just report its state.
+          xcrun simctl spawn "$omni_simulator_id" launchctl print system \
+            > "$OMNI_CI_ROOT/logs/simulator-launchd.txt"
           xcodebuild -showdestinations \
             -project Omni.xcodeproj -scheme Omni \
             -destination-timeout 30 \
@@ -229,6 +236,19 @@ jobs:
             printf 'Build logs and this summary remain in the workflow run; temporary build files expire with the runner.\n'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Shut down the selected simulator
-        if: ${{ always() && steps.simulator.outcome == 'success' }}
-        run: xcrun simctl shutdown "$OMNI_SIMULATOR_ID"
+      - name: Remove only this run's isolated simulator
+        if: ${{ always() && steps.simulator.outputs.identifier != '' }}
+        env:
+          OMNI_CREATED_SIMULATOR_ID: ${{ steps.simulator.outputs.identifier }}
+        run: |
+          python3 <<'PY_CLEANUP'
+          import os
+          import subprocess
+          import uuid
+
+          identifier = os.environ['OMNI_CREATED_SIMULATOR_ID']
+          uuid.UUID(identifier)
+          # A failed boot may already be shut down; still delete our own device.
+          subprocess.run(['xcrun', 'simctl', 'shutdown', identifier], check=False)
+          subprocess.run(['xcrun', 'simctl', 'delete', identifier], check=True)
+          PY_CLEANUP
