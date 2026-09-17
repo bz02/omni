@@ -15,17 +15,32 @@ claim they are verified facts, or infer a person's identity from them. Use only 
 context and acknowledge uncertainty. Do not invent memories or imply permanent storage.
 Offer a manageable next step and respect the user's own choices. Do not diagnose, provide
 medical or investment advice, predict death, or claim astrology determines relationship
-outcomes. If immediate danger is expressed, encourage contacting local emergency help or
-a trusted person. Never claim to send messages or take external actions. There are no tools.
-Do not reveal hidden reasoning. A brief, useful answer is enough."""
+outcomes. If the user describes immediate danger or possible self-harm, respond with brief,
+compassionate support and concrete steps for staying safe now, not a generic refusal:
+encourage moving away from anything they could use to hurt themselves, going to a safer
+place, and contacting a trusted person nearby who can stay with them. If they are in the
+United States, explicitly suggest calling or texting 988 for crisis support. For immediate
+physical danger or an attempt already underway, suggest calling 911 in the United States
+or the local emergency number elsewhere. Do not invent a hotline for an unknown location;
+encourage local emergency help and ask their country if needed without delaying safety steps.
+Never claim to send messages or take external actions. There are no tools.
+Do not reveal hidden reasoning. Return the required JSON object with the user-facing answer
+in reply. Keep reply itself natural language, not a serialized JSON object or code block.
+A brief, useful answer is enough."""
 
 SUGGESTION_INSTRUCTIONS = """
 Return the required JSON object. memory_suggestions are optional candidate notes for the
-user to review, never saved facts. Suggest at most two stable preferences, self-described
-profile facts, goals or relationship needs explicitly stated in current_user_message.
+user to review, never saved facts. Suggest at most two stable, non-sensitive preferences or
+goals explicitly stated by the user about themselves in current_user_message. Use only
+preference or goal as the kind. A candidate must be useful beyond this moment, not merely
+something the user happens to mention or request today.
 Every source_quote must be an exact, contiguous quote from that message. Never derive a
-candidate from context, earlier history or your own answer. Do not propose diagnoses,
-sexual orientation, passwords, financial/account details, or facts about other people.
+candidate from context, earlier history or your own answer. For any message discussing
+health symptoms, diagnoses, self-harm or other crisis, trauma, or abuse, return an empty
+array. Do not reframe those disclosures as preferences, goals or relationship needs, even
+when the user asks you to remember them. Never propose short-term emotions, sensitive
+identity details such as sexual orientation, passwords, financial/account details, or facts
+about other people. A first-person quote alone does not make sensitive content eligible.
 If uncertain, return an empty array. Keep each candidate concise, editable and nonjudgmental.
 """
 
@@ -57,6 +72,17 @@ class ResponsesResponder:
     async def respond(self, message: str, memories: list[dict], history: list[dict], *, suggest_memories: bool = False) -> dict:
         if not self.api_key or not self.model:
             raise HTTPException(503, "The conversation model is not configured.")
+        schema = {
+            "type": "object", "additionalProperties": False, "required": ["reply"],
+            "properties": {"reply": {"type": "string"}},
+        }
+        if suggest_memories:
+            schema["required"].append("memory_suggestions")
+            schema["properties"]["memory_suggestions"] = {"type": "array", "items": {
+                "type": "object", "additionalProperties": False, "required": ["kind", "text", "source_quote"],
+                "properties": {"kind": {"type": "string", "enum": ["preference", "goal"]},
+                               "text": {"type": "string"}, "source_quote": {"type": "string"}}
+            }}
         payload = {
             "model": self.model,
             "store": False,
@@ -67,20 +93,10 @@ class ResponsesResponder:
                 "current_user_message": message,
             }, ensure_ascii=False)}]}],
             "max_output_tokens": 900,
+            "text": {"format": {"type": "json_schema", "name": "omni_reply", "strict": True, "schema": schema}},
         }
         if suggest_memories:
             payload["instructions"] += SUGGESTION_INSTRUCTIONS
-            payload["text"] = {"format": {"type": "json_schema", "name": "omni_reply", "strict": True, "schema": {
-                "type": "object", "additionalProperties": False, "required": ["reply", "memory_suggestions"],
-                "properties": {
-                    "reply": {"type": "string"},
-                    "memory_suggestions": {"type": "array", "items": {
-                        "type": "object", "additionalProperties": False, "required": ["kind", "text", "source_quote"],
-                        "properties": {"kind": {"type": "string", "enum": ["profile", "preference", "relationship", "goal", "note"]},
-                                       "text": {"type": "string"}, "source_quote": {"type": "string"}}
-                    }}
-                }
-            }}}
         try:
             async with httpx.AsyncClient(timeout=httpx.Timeout(35, connect=8), follow_redirects=False, transport=self.transport) as client:
                 response = await client.post("https://api.openai.com/v1/responses", headers={"Authorization": f"Bearer {self.api_key}"}, json=payload)
@@ -94,11 +110,16 @@ class ResponsesResponder:
             result = "\n".join(parts).strip()
             if not result or len(result) > 12000:
                 raise ValueError()
+            structured = json.loads(result)
+            if not isinstance(structured, dict) or set(structured) != set(schema["required"]):
+                raise ValueError()
+            result = structured["reply"]
             suggestions = []
             if suggest_memories:
-                structured = json.loads(result)
-                result = structured.get("reply")
-                suggestions = validated_suggestions(structured.get("memory_suggestions"), message)
+                if not isinstance(structured["memory_suggestions"], list):
+                    raise ValueError()
+                suggestions = [item for item in validated_suggestions(structured["memory_suggestions"], message)
+                               if item["kind"] in {"preference", "goal"}]
             if not isinstance(result, str) or not 1 <= len(result.strip()) <= 6000:
                 raise ValueError()
             return {"content": result.strip(), "memory_suggestions": suggestions}

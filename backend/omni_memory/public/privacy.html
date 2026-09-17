@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="How Omni: Daily Clarity handles your journal, chosen memories, optional online conversations, and account data.">
+  <title>Privacy · Omni: Daily Clarity</title>
+  <link rel="stylesheet" href="/public/style.css">
+</head>
+<body>
+  <header>
+    <a class="brand" href="/support" aria-label="Omni support">omni</a>
+    <nav aria-label="Information"><a href="/support">Support</a><a href="/privacy" aria-current="page">Privacy</a></nav>
+  </header>
+  <main id="main">
+    <p class="eyebrow">Omni: Daily Clarity</p>
+    <h1>Your words.<br>Your choices.</h1>
+    <p class="intro">This policy explains what stays on your device, what you can choose to send, and how to manage your information.</p>
+    <p class="meta">Effective September 16, 2026<br>Operator: Xiaobo Zhang · <a href="mailto:seatrial.ai@gmail.com">seatrial.ai@gmail.com</a></p>
+
+    <aside class="notice" aria-labelledby="availability">
+      <h2 id="availability">About this version</h2>
+      <p>Omni is in testing and is not publicly available on the App Store. Features vary by test version. The preview supports local reflection and memory controls. The optional processing described below for online accounts, conversations, account memory sync, and Plus applies only when your test version enables those features and you choose to use them. Plus is not yet on sale to the public.</p>
+    </aside>
+
+    <section aria-labelledby="journal">
+      <h2 id="journal">Your local journal</h2>
+      <p>You can record a first name, personal focus, feelings, intentions, and relationship reflections without an account. The app stores these records on your device. We do not receive your local journal entries or send them to an AI provider.</p>
+      <p>The app uses iOS file protection and excludes its journal storage folder from device backup. This does not protect a file you export. Deleting the app, losing your device, or erasing its data may permanently remove the journal. Use <span class="path">You → Export my journal</span> to keep a readable JSON copy in a location you choose.</p>
+      <p>Guided reflections use authored prompts and the words you enter. They do not measure another person's feelings or predict relationship outcomes.</p>
+    </section>
+
+    <section aria-labelledby="memories">
+      <h2 id="memories">Memories you choose to keep</h2>
+      <p>Memory starts off. Plus users can turn it on and explicitly save profile details, preferences, relationship needs, or goals. You can view, correct, delete, and export existing records even after Plus ends.</p>
+      <p>Saved memories and conversation history use protected local archives excluded from device backup. Guest records and each signed-in account have separate archives. Signing in does not upload or import guest memories or your journal. Conversation history has its own control; turning history off keeps existing history and stops saving future conversations.</p>
+      <p>If you request memory suggestions during an online conversation, the model may propose a note with a quote from your current message. You must review and confirm it before it becomes a saved memory. A quoted phrase does not prove the interpretation is correct. Assistant replies are not automatically saved as personal facts.</p>
+      <p>Open <span class="path">You → What Omni remembers</span> to manage records or export memories and conversations. Deleting one memory does not remove the same words from old conversations. Deleting its source conversation also removes memories saved from that conversation. Independent profile notes remain until you remove them.</p>
+    </section>
+
+    <section aria-labelledby="conversations">
+      <h2 id="conversations">Optional online conversations</h2>
+      <p>Before sending an online chat, the app asks for permission. Omni's service sends your current message, up to eight recent messages from the current conversation, and up to six relevant saved memories to OpenAI to produce a reply. Your journal is not included. Saved memories are used only when memory is enabled.</p>
+      <p>In this app's chat mode, Omni's server processes the request without saving a separate copy of the conversation content. History may be saved on your device according to your settings. Choosing account memory sync later can upload that saved history. The service separately keeps account authorization, subscription, and rate-limit records.</p>
+      <p>Temporary conversations exclude saved memories, do not create memory suggestions or saved history, and clear from the current view when you leave the conversation screen or background the app. Recent messages from that temporary conversation can accompany your next message. Temporary chat still sends its content to the online service and OpenAI.</p>
+      <p>You can turn off online conversations to stop future sending. This cannot retract a request already processed.</p>
+      <h3>OpenAI's handling of API data</h3>
+      <p>OpenAI states that API data is not used to train its models by default unless a customer explicitly opts in. Omni requests that responses not be stored for later retrieval. That setting does not eliminate all provider retention: OpenAI's abuse-monitoring logs are generally retained for up to 30 days, with exceptions for legal requirements or preventing harm, and temporary processing caches may apply.</p>
+      <p>See <a href="https://developers.openai.com/api/docs/guides/your-data">OpenAI's API data controls</a> for its current terms and processing details.</p>
+    </section>
+
+    <section aria-labelledby="account">
+      <h2 id="account">Optional Apple account and sync</h2>
+      <p>Sign in with Apple verifies your identity. Omni uses an opaque account identifier and protected access and refresh sessions. The server stores an encrypted Apple refresh credential so it can revoke access when you delete your account. This implementation does not request your name or email from Apple.</p>
+      <p>Apple subscription transactions are linked to your Omni account and checked with Apple to establish access. We receive transaction and subscription status information, not your payment-card number.</p>
+      <p>Choosing <span class="path">You → Sync account memory</span> and allowing that sync session sends the signed-in account's saved memories, saved conversation history, and memory/history settings to Omni's server. It does not send the journal or guest archives. Sync is manual. If both copies changed, you choose before replacing a copy. Permission to send chats to OpenAI stays separate on each device.</p>
+      <p>Signing out retains the protected account cache on your device so unsynced edits are not silently lost. The same account opens that cache when it signs in again. A subscription ending does not delete your personal records.</p>
+    </section>
+
+    <section aria-labelledby="hosting">
+      <h2 id="hosting">Hosting and technical information</h2>
+      <p>Omni's optional account service is configured for Render's Oregon region in the United States, using a persistent disk for account and synced records. The service can process information it receives; this is not end-to-end encrypted storage.</p>
+      <p>Visiting these pages or using online services requires the hosting infrastructure to process an IP address and technical request information. Omni's application access logs are disabled. This does not mean Render or its infrastructure processes no logs or network information. Hosting providers may retain technical records for operations and security under their own policies.</p>
+      <p>Render describes persistent-disk snapshots taken every 24 hours, available for at least seven days. Records removed from the active database may remain in older snapshots. This is not a promise that backups are deleted within seven days, and we do not promise a maximum backup-retention period. See <a href="https://render.com/docs/disks">Render's persistent disk documentation</a> and <a href="https://render.com/privacy">Render's privacy policy</a>.</p>
+    </section>
+
+    <section aria-labelledby="other-features">
+      <h2 id="other-features">Purchases, reminders, and other features</h2>
+      <p>Apple handles payments under its own policies. Omni uses Apple-verified transactions and status to provide Plus features. The free reflection allowance records usage dates locally; deleting one reflection does not reset that day's allowance.</p>
+      <p>Optional daily reminders are scheduled on your device and contain generic text, not journal content. Turn them off in Omni or manage notifications in iOS Settings.</p>
+      <p>The current preview does not enable an external birth-chart service. If one is added, this policy and the app's permission screen will describe its information, providers, and processing before use. The app does not require your current GPS location for a birth chart; a place lookup may send location text you enter to Apple's geocoding service.</p>
+    </section>
+
+    <section aria-labelledby="sharing">
+      <h2 id="sharing">Sharing, advertising, and support</h2>
+      <p>This version has no public profiles, stranger matching, direct messages, advertising SDK, third-party analytics SDK, or journal cloud sync. Omni does not automatically share your records with a partner or import your social contacts. These public pages use no scripts, analytics, third-party fonts, or tracking cookies.</p>
+      <p>You choose whether and where to save exports, including whether the destination is a cloud service. If you email support, we receive your email address and the information you choose to include, and use it to respond and handle your request. Please do not send journal entries, account credentials, or sensitive attachments unless needed to resolve the issue. Email is processed by the email services involved.</p>
+    </section>
+
+    <section id="deletion" aria-labelledby="deletion-title">
+      <h2 id="deletion-title">Deleting information and retaining copies</h2>
+      <p>Local records stay on your device until you remove them or erase the app's data. Active cloud records remain until you delete or replace them. Different controls affect different copies:</p>
+      <ul>
+        <li><span class="path">You → Erase data on this device</span> removes the local profile, journal, usage ledger, currently open memory archive, and reminder. Cloud copies and other account caches remain.</li>
+        <li><span class="path">Delete cloud copy</span> in account memory sync removes the synced snapshot from active cloud storage, while retaining the account and local records. Local edits and deletions reach the cloud only when you sync those changes.</li>
+        <li><span class="path">Your Omni account → Delete my Omni account</span> requests removal of server account data, memories, history, subscription binding, and sessions, and revokes Apple login access. After server confirmation, the app removes this device's cache for that account. If revocation fails, the app shows an error and does not report completion.</li>
+      </ul>
+      <p>Other offline devices, exports, and older hosting snapshots can retain independent copies. Other devices learn of revoked access when they reconnect, but remote account deletion cannot guarantee erasure of every offline copy. Provider records are also subject to the retention described above. Export anything you want to keep before deleting it.</p>
+      <p><strong>Account deletion, erasing app data, and uninstalling Omni do not cancel an Apple subscription.</strong> Manage or cancel through <a href="https://apps.apple.com/account/subscriptions">your Apple subscription settings</a>.</p>
+      <p>Email <a href="mailto:seatrial.ai@gmail.com">seatrial.ai@gmail.com</a> for a data-access or deletion request, including if you cannot use the account controls. We may need enough information to verify the account and understand the request. Do not email passwords, verification codes, or payment-card details. Support correspondence may be retained to handle the request and maintain a record of its resolution.</p>
+    </section>
+
+    <section aria-labelledby="updates">
+      <h2 id="updates">Questions and changes</h2>
+      <p>Omni is operated by Xiaobo Zhang. Contact <a href="mailto:seatrial.ai@gmail.com">seatrial.ai@gmail.com</a> with privacy questions. We will update this page when the service or its data handling changes and ask for separate permission when required. The effective date above identifies this version.</p>
+    </section>
+  </main>
+  <footer>
+    <p>Omni: Daily Clarity · Xiaobo Zhang</p>
+    <p><a href="/support">Get support</a> · <a href="mailto:seatrial.ai@gmail.com">seatrial.ai@gmail.com</a></p>
+  </footer>
+</body>
+</html>
