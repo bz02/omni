@@ -1,0 +1,15 @@
+.venv
+.git
+.env
+.env.*
+memory.env
+secrets
+data
+*.p8
+*.key
+*.sqlite3*
+__pycache__
+.pytest_cache
+tests
+examples
+ephe

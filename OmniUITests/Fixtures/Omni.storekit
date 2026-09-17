@@ -1,0 +1,72 @@
+{
+  "identifier" : "9B0313D4-EC8E-4759-AD37-5BA49262C52D",
+  "nonRenewingSubscriptions" : [],
+  "products" : [],
+  "settings" : {
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_timeRate" : 0
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "C7B2CC22-3052-4C86-A123-C5E0B7B6DE98",
+      "localizations" : [
+        {
+          "description" : "Omni Plus",
+          "displayName" : "Omni Plus",
+          "locale" : "en_US"
+        }
+      ],
+      "name" : "Omni Plus",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "7.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "EC94E637-884B-4964-BEF8-11567234E5C0",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Unlock weekly reflections and guided decision tools.",
+              "displayName" : "Omni Plus Monthly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "omni.ai.Omni.plus.monthly",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Omni Plus Monthly",
+          "subscriptionGroupID" : "C7B2CC22-3052-4C86-A123-C5E0B7B6DE98",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [],
+          "codeOffers" : [],
+          "displayPrice" : "39.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "B955BB77-B2E6-45B0-852B-943F7F104FE2",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "Unlock weekly reflections and guided decision tools for one year.",
+              "displayName" : "Omni Plus Yearly",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "omni.ai.Omni.plus.yearly",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Omni Plus Yearly",
+          "subscriptionGroupID" : "C7B2CC22-3052-4C86-A123-C5E0B7B6DE98",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}

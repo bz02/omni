@@ -1,0 +1,10 @@
+backend/.venv/
+backend/data/
+backend/secrets/
+backend/memory.env
+**/__pycache__/
+**/.pytest_cache/
+.env
+.env.*
+*.p8
+*.sqlite3*

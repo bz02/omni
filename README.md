@@ -1,5 +1,13 @@
 # Omni (万相)
 
+## Native iOS release preparation
+
+The `codex/omni-ios-release` branch contains the native SwiftUI app in `Omni/`, its shared `Omni.xcodeproj` scheme, and isolated tests. The web prototype described below remains a separate implementation.
+
+The iOS workflow verifies a Release archive and the unit, StoreKit, account, memory and reflection journeys using Xcode 26.3 / iOS 26.2 on a GitHub-hosted Mac. It does not sign or upload a build to Apple, and it does not retain build artifacts. Check the actual Actions run before claiming success.
+
+App Store publication is still pending Apple account setup, distribution signing, real public privacy/support URLs, working online services, store products and final submission. See [iOS configuration](Configuration/README.md). No Apple certificates, private keys, session credentials or user data are included.
+
 AI-native astrology + tarot + MBTI + Oracle assistant with payment tips.
 
 ## Repository layout
@@ -73,3 +81,8 @@ Replace mocks with real services behind your gateway. Keep PII scrubbing before 
 - Consent gating for geolocation/SDK usage (PIPL); no permissions until user accepts.
 - Encrypt in transit (TLS) and at rest; restrict DB with security groups; rotate keys.
 - Publish transparency label listing data collected, use, retention, and third-party SDKs.
+
+
+## Omni account memory backend
+
+This deployment branch adds the isolated Python account/memory service alongside the existing web app. Use [the Render deployment guide](docs/RENDER_DEPLOYMENT.md) and Blueprint path `deploy/render.yaml`. No real Apple or model credentials are stored here; those integrations remain unavailable until configured. CI builds the production container and verifies authentication and persistence with synthetic data.

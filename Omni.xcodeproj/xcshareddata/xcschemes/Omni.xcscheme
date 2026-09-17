@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scheme LastUpgradeVersion="1620" version="1.3">
+  <BuildAction parallelizeBuildables="YES" buildImplicitDependencies="YES">
+    <BuildActionEntries><BuildActionEntry buildForTesting="YES" buildForRunning="YES" buildForProfiling="YES" buildForArchiving="YES" buildForAnalyzing="YES">
+      <BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="DA30A59C2F24B6DA00CDC5EE" BuildableName="Omni.app" BlueprintName="Omni" ReferencedContainer="container:Omni.xcodeproj"/>
+    </BuildActionEntry></BuildActionEntries>
+  </BuildAction>
+  <TestAction buildConfiguration="Debug" selectedDebuggerIdentifier="Xcode.DebuggerFoundation.Debugger.LLDB" selectedLauncherIdentifier="Xcode.IDEFoundation.Launcher.LLDB" shouldUseLaunchSchemeArgsEnv="YES">
+    <Testables>
+      <TestableReference skipped="NO"><BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="DA30A5AD2F24B6DB00CDC5EE" BuildableName="OmniTests.xctest" BlueprintName="OmniTests" ReferencedContainer="container:Omni.xcodeproj"/></TestableReference>
+      <TestableReference skipped="NO"><BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="DA30A5B72F24B6DB00CDC5EE" BuildableName="OmniUITests.xctest" BlueprintName="OmniUITests" ReferencedContainer="container:Omni.xcodeproj"/></TestableReference>
+    </Testables>
+  </TestAction>
+  <LaunchAction buildConfiguration="Debug" selectedDebuggerIdentifier="Xcode.DebuggerFoundation.Debugger.LLDB" selectedLauncherIdentifier="Xcode.IDEFoundation.Launcher.LLDB" launchStyle="0" useCustomWorkingDirectory="NO" ignoresPersistentStateOnLaunch="NO" debugDocumentVersioning="YES" debugServiceExtension="internal" allowLocationSimulation="YES">
+    <BuildableProductRunnable runnableDebuggingMode="0"><BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="DA30A59C2F24B6DA00CDC5EE" BuildableName="Omni.app" BlueprintName="Omni" ReferencedContainer="container:Omni.xcodeproj"/></BuildableProductRunnable>
+    <StoreKitConfigurationFileReference identifier="../../Configuration/Omni.storekit"/>
+  </LaunchAction>
+  <ProfileAction buildConfiguration="Release" shouldUseLaunchSchemeArgsEnv="YES" savedToolIdentifier="" useCustomWorkingDirectory="NO" debugDocumentVersioning="YES"><BuildableProductRunnable runnableDebuggingMode="0"><BuildableReference BuildableIdentifier="primary" BlueprintIdentifier="DA30A59C2F24B6DA00CDC5EE" BuildableName="Omni.app" BlueprintName="Omni" ReferencedContainer="container:Omni.xcodeproj"/></BuildableProductRunnable></ProfileAction>
+  <AnalyzeAction buildConfiguration="Debug"/>
+  <ArchiveAction buildConfiguration="Release" revealArchiveInOrganizer="YES"/>
+</Scheme>
