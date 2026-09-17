@@ -66,6 +66,41 @@ The build appears in TestFlight once Apple finishes processing it. Test it there
 especially a real sandbox subscription purchase, restore, and expiry — before
 creating the App Store version and submitting.
 
+## Screenshots
+
+`iOS App Store screenshots` (`.github/workflows/ios-screenshots.yml`) captures them
+from the real app rather than from mockups: it boots a simulator whose native
+resolution is a size Apple accepts, runs the `ClarityJourneyTests` and
+`MemoryJourneyTests` journeys, and exports the screenshot attachments those tests
+already record. Pick `iphone-6.9`, `ipad-13`, or `both`, then download the
+`omni-screenshots-<class>` artifact.
+
+`Omni` sets `TARGETED_DEVICE_FAMILY = "1,2"`, so it ships as an iPhone **and** iPad
+app and App Store Connect will ask for both an iPhone 6.9" set and an iPad 13" set.
+Run with `both`.
+
+`scripts/extract_screenshots.py` checks every exported PNG against the accepted
+pixel dimensions for that class and fails the run if one does not match, naming the
+size it actually got. When that happens, change the simulator device — do **not**
+rescale the images, because Apple rejects resampled screenshots.
+
+What comes out is a raw capture of ten real screens, in test order. It is not a
+finished store listing:
+
+- Choose and order the ones that actually sell the app; the first two are what most
+  people see.
+- Drop any screen showing placeholder or test-authored content. The journeys type
+  synthetic text such as "Take a quiet walk before dinner", and a screenshot must
+  show what a real user would see.
+- The journeys run with `OMNI_MEMORY_API_URL=''`, so anything requiring the backend
+  renders in its offline or unavailable state. Those frames are not usable as-is.
+- Marketing frames (device bezels, captions, backgrounds) are a design task and
+  are deliberately not automated here.
+- Screenshots must match the app's current build. Re-run after UI changes.
+
+The tests set `-AppleLanguages (en)` and `-AppleLocale en_US`, so the output is the
+English set only. Other locales would need those launch arguments parameterized.
+
 ## Bumping the version
 
 `MARKETING_VERSION` (`1.0`) lives in `Omni.xcodeproj/project.pbxproj` and is the
