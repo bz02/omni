@@ -1,0 +1,232 @@
+name: iOS App Store upload
+
+# Manual only. This workflow signs a real distribution build and uploads it to
+# App Store Connect, so it never runs on a push.
+"on":
+  workflow_dispatch:
+    inputs:
+      build_number:
+        description: "CFBundleVersion for this upload. Must be higher than every build already uploaded for this marketing version."
+        required: true
+        type: string
+      dry_run:
+        description: "Archive, sign and export, but do not upload to App Store Connect."
+        required: false
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: macos-26
+    timeout-minutes: 90
+    environment: app-store
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out the selected revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Validate inputs and required secrets
+        env:
+          BUILD_NUMBER: ${{ inputs.build_number }}
+          CERT_P12: ${{ secrets.APPLE_DIST_CERT_P12_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.APPLE_DIST_CERT_PASSWORD }}
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+        run: |
+          # A non-numeric build number is accepted by xcodebuild and then
+          # rejected by App Store Connect after the whole archive has run.
+          case "$BUILD_NUMBER" in
+            ''|*[!0-9]*) echo "build_number must be a positive integer." >&2; exit 1 ;;
+          esac
+          missing=0
+          for name in CERT_P12 CERT_PASSWORD ASC_KEY_ID ASC_ISSUER_ID ASC_PRIVATE_KEY; do
+            if [ -z "${!name}" ]; then
+              echo "Missing repository secret for $name." >&2
+              missing=1
+            fi
+          done
+          [ "$missing" -eq 0 ]
+          test -d "$DEVELOPER_DIR"
+          test "$(xcodebuild -version | head -n 1)" = "Xcode 26.3"
+
+      - name: Refuse to ship without published privacy and support URLs
+        run: |
+          # The Release paywall disables itself when either URL is empty, and
+          # App Store Review rejects a subscription app without both pages.
+          for setting in OMNI_PRIVACY_URL OMNI_SUPPORT_URL; do
+            value="$(xcodebuild -project Omni.xcodeproj -target Omni \
+              -configuration Release -showBuildSettings 2>/dev/null \
+              | sed -n "s/^ *$setting = //p" | head -n 1)"
+            if [ -z "$value" ]; then
+              echo "$setting is empty in the Release configuration." >&2
+              exit 1
+            fi
+            # Only confirms the page is reachable, not that its content is correct.
+            curl --fail --silent --show-error --location --head "$value" > /dev/null \
+              || { echo "$setting ($value) is not reachable over HTTPS." >&2; exit 1; }
+            printf '%s = %s\n' "$setting" "$value"
+          done
+
+      - name: Import the Apple Distribution certificate into a throwaway keychain
+        env:
+          CERT_P12: ${{ secrets.APPLE_DIST_CERT_P12_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.APPLE_DIST_CERT_PASSWORD }}
+        run: |
+          keychain="$RUNNER_TEMP/omni-release.keychain-db"
+          # Random per run: this password never needs to outlive the job.
+          keychain_password="$(uuidgen)"
+          printf 'OMNI_KEYCHAIN=%s\n' "$keychain" >> "$GITHUB_ENV"
+          security create-keychain -p "$keychain_password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$keychain_password" "$keychain"
+          printf '%s' "$CERT_P12" | base64 --decode > "$RUNNER_TEMP/dist.p12"
+          # -T codesign plus set-key-partition-list avoids the interactive
+          # "allow access" prompt that would otherwise hang a headless runner.
+          security import "$RUNNER_TEMP/dist.p12" -k "$keychain" \
+            -P "$CERT_PASSWORD" -A -t cert -f pkcs12 -T /usr/bin/codesign
+          rm -f "$RUNNER_TEMP/dist.p12"
+          security set-key-partition-list -S apple-tool:,apple: \
+            -k "$keychain_password" "$keychain" > /dev/null
+          # Prepend, keeping the system keychain so Apple's root certs resolve.
+          security list-keychains -d user -s "$keychain" login.keychain-db
+          identities="$(security find-identity -v -p codesigning "$keychain")"
+          echo "$identities" | grep -q 'Apple Distribution' \
+            || { echo "No Apple Distribution identity in the imported .p12." >&2; exit 1; }
+
+      - name: Install the App Store Connect API key
+        env:
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+        run: |
+          key_dir="$RUNNER_TEMP/private_keys"
+          mkdir -p "$key_dir"
+          key_path="$key_dir/AuthKey_$ASC_KEY_ID.p8"
+          printf '%s' "$ASC_PRIVATE_KEY" > "$key_path"
+          chmod 600 "$key_path"
+          # A .p8 pasted without its PEM armour fails much later, inside altool.
+          head -n 1 "$key_path" | grep -q 'BEGIN PRIVATE KEY' \
+            || { echo "APP_STORE_CONNECT_PRIVATE_KEY is not a PEM .p8 key." >&2; exit 1; }
+          printf 'OMNI_ASC_KEY_PATH=%s\n' "$key_path" >> "$GITHUB_ENV"
+
+      - name: Archive a signed Release build
+        id: archive
+        env:
+          BUILD_NUMBER: ${{ inputs.build_number }}
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          archive="$RUNNER_TEMP/Omni.xcarchive"
+          printf 'OMNI_ARCHIVE=%s\n' "$archive" >> "$GITHUB_ENV"
+          # -allowProvisioningUpdates lets Xcode fetch or create the App Store
+          # provisioning profile through the API key instead of a stored profile.
+          xcodebuild archive \
+            -project Omni.xcodeproj \
+            -scheme Omni \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath "$archive" \
+            -derivedDataPath "$RUNNER_TEMP/ReleaseDerivedData" \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$OMNI_ASC_KEY_PATH" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
+            OTHER_CODE_SIGN_FLAGS='--keychain '"$OMNI_KEYCHAIN"
+          test -d "$archive/Products/Applications/Omni.app"
+          plist="$archive/Products/Applications/Omni.app/Info.plist"
+          version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$plist")"
+          build="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$plist")"
+          # Confirm the override reached the binary rather than trusting the flag.
+          test "$build" = "$BUILD_NUMBER"
+          /usr/libexec/PlistBuddy -c 'Print :OMNI_PRIVACY_URL' "$plist"
+          /usr/libexec/PlistBuddy -c 'Print :OMNI_SUPPORT_URL' "$plist"
+          printf 'version=%s\n' "$version" >> "$GITHUB_OUTPUT"
+          printf 'build=%s\n' "$build" >> "$GITHUB_OUTPUT"
+
+      - name: Export a signed App Store IPA
+        id: export
+        env:
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          export_dir="$RUNNER_TEMP/export"
+          xcodebuild -exportArchive \
+            -archivePath "$OMNI_ARCHIVE" \
+            -exportPath "$export_dir" \
+            -exportOptionsPlist Configuration/ExportOptions-AppStore.plist \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$OMNI_ASC_KEY_PATH" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID"
+          ipa="$(find "$export_dir" -maxdepth 1 -name '*.ipa' | head -n 1)"
+          test -n "$ipa"
+          printf 'OMNI_IPA=%s\n' "$ipa" >> "$GITHUB_ENV"
+          codesign --verify --strict --verbose=2 \
+            "$OMNI_ARCHIVE/Products/Applications/Omni.app"
+
+      - name: Validate the IPA against App Store Connect
+        env:
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          # altool reads the key from ./private_keys or ~/.appstoreconnect/private_keys.
+          export API_PRIVATE_KEYS_DIR="$RUNNER_TEMP/private_keys"
+          xcrun altool --validate-app -f "$OMNI_IPA" -t ios \
+            --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
+
+      - name: Upload the build to App Store Connect
+        if: ${{ inputs.dry_run == false }}
+        env:
+          ASC_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+        run: |
+          export API_PRIVATE_KEYS_DIR="$RUNNER_TEMP/private_keys"
+          # Delivers the build to TestFlight. It does NOT submit for review:
+          # a human still creates the App Store version and submits it.
+          xcrun altool --upload-app -f "$OMNI_IPA" -t ios \
+            --apiKey "$ASC_KEY_ID" --apiIssuer "$ASC_ISSUER_ID"
+
+      - name: Write result summary
+        if: ${{ always() }}
+        env:
+          VERSION: ${{ steps.archive.outputs.version }}
+          BUILD: ${{ steps.archive.outputs.build }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: |
+          {
+            printf '## Omni iOS App Store upload\n\n'
+            printf '- Version: `%s (%s)`\n' "${VERSION:-unknown}" "${BUILD:-unknown}"
+            printf '- Dry run: `%s`\n\n' "$DRY_RUN"
+            if [ "$DRY_RUN" = "false" ]; then
+              printf 'The build was uploaded to App Store Connect and will appear in '
+              printf 'TestFlight after Apple finishes processing it.\n\n'
+            else
+              printf 'Dry run: the build was signed, exported and validated, but not uploaded.\n\n'
+            fi
+            printf 'Uploading is not submitting. Creating the App Store version, '
+            printf 'attaching this build, completing the privacy questionnaire and age rating, '
+            printf 'and pressing Submit for Review all remain manual steps in App Store Connect.\n'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Remove the throwaway keychain and API key
+        if: ${{ always() }}
+        run: |
+          security list-keychains -d user -s login.keychain-db || true
+          if [ -n "${OMNI_KEYCHAIN:-}" ]; then
+            security delete-keychain "$OMNI_KEYCHAIN" || true
+          fi
+          rm -rf "$RUNNER_TEMP/private_keys" "$RUNNER_TEMP/dist.p12"
