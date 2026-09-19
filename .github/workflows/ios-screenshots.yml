@@ -107,6 +107,9 @@ jobs:
               ['xcrun', 'simctl', 'create', name, chosen['identifier'], runtime['identifier']],
               text=True).strip()
           uuid.UUID(identifier)
+          # GITHUB_ENV only reaches LATER steps, so this same step must read
+          # the UDID back from a file (the pattern ios-verify.yml uses).
+          (root / 'simulator-id.txt').write_text(identifier)
           with open(os.environ['GITHUB_ENV'], 'a') as out:
               out.write(f'OMNI_SIMULATOR_ID={identifier}\n')
           with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
@@ -115,8 +118,10 @@ jobs:
               out.write(f'device={chosen["name"]}\n')
           print(f'Using {chosen["name"]} on iOS {runtime["version"]} ({identifier})')
           PY
-          xcrun simctl boot "$OMNI_SIMULATOR_ID"
-          xcrun simctl bootstatus "$OMNI_SIMULATOR_ID" -b
+          omni_simulator_id="$(cat "$OMNI_CI_ROOT/simulator-id.txt")"
+          test -n "$omni_simulator_id"
+          xcrun simctl boot "$omni_simulator_id"
+          xcrun simctl bootstatus "$omni_simulator_id" -b
 
       - name: Run the journey tests to capture screenshots
         env:
