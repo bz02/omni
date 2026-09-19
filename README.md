@@ -6,7 +6,7 @@ The `codex/omni-ios-release` branch contains the native SwiftUI app in `Omni/`, 
 
 The iOS workflow verifies a Release archive and the unit, StoreKit, account, memory and reflection journeys using Xcode 26.3 / iOS 26.2 on a GitHub-hosted Mac. It does not sign or upload a build to Apple, and it does not retain build artifacts. Check the actual Actions run before claiming success.
 
-App Store publication is still pending Apple account setup, distribution signing, real public privacy/support URLs, working online services, store products and final submission. See [iOS configuration](Configuration/README.md). No Apple certificates, private keys, session credentials or user data are included.
+App Store publication is still pending Apple account setup, distribution signing, real public privacy/support URLs, working online services, store products and final submission. The signing and upload half is automated in the manual `iOS App Store upload` workflow; the account, listing and submission half is not and cannot be. See [App Store release](docs/APP_STORE_RELEASE.md) and [iOS configuration](Configuration/README.md). No Apple certificates, private keys, session credentials or user data are included.
 
 AI-native astrology + tarot + MBTI + Oracle assistant with payment tips.
 

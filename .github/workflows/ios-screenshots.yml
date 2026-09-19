@@ -1,0 +1,187 @@
+name: iOS App Store screenshots
+
+# Captures App Store screenshots from the real app by running the journey UI
+# tests and exporting their XCTest attachments. Manual: it costs macOS minutes
+# and is only needed when the UI or the store listing changes.
+"on":
+  workflow_dispatch:
+    inputs:
+      device_class:
+        description: "Screenshot size to capture."
+        required: true
+        default: "iphone-6.9"
+        type: choice
+        options:
+          - iphone-6.9
+          - ipad-13
+          - both
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-screenshots-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  capture:
+    runs-on: macos-26
+    timeout-minutes: 45
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    strategy:
+      fail-fast: false
+      matrix:
+        device_class: ${{ inputs.device_class == 'both' && fromJSON('["iphone-6.9","ipad-13"]') || fromJSON(format('["{0}"]', inputs.device_class)) }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out the selected revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Verify the toolchain
+        run: |
+          test -d "$DEVELOPER_DIR"
+          xcodebuild -version
+          printf 'OMNI_CI_ROOT=%s\n' "$RUNNER_TEMP/omni-shots" >> "$GITHUB_ENV"
+          mkdir -p "$RUNNER_TEMP/omni-shots"
+
+      - name: Create a simulator whose native size Apple accepts
+        id: simulator
+        env:
+          DEVICE_CLASS: ${{ matrix.device_class }}
+        run: |
+          xcrun simctl list --json > "$OMNI_CI_ROOT/simulators.json"
+          python3 <<'PY'
+          import json, os, re, subprocess, uuid
+          from pathlib import Path
+
+          root = Path(os.environ['OMNI_CI_ROOT'])
+          inventory = json.loads((root / 'simulators.json').read_text())
+          device_class = os.environ['DEVICE_CLASS']
+
+          # Preference order, best first. Apple's accepted sizes are tied to
+          # specific display sizes, so the device choice is what makes the
+          # screenshots valid; the extractor re-checks the actual pixels.
+          wanted = {
+              'iphone-6.9': [r'^iPhone \d+ Pro Max$', r'^iPhone \d+ Plus$'],
+              'ipad-13': [r'^iPad Pro 13-inch', r'^iPad Pro \(12\.9-inch\)'],
+          }[device_class]
+          family = 'iOS'
+
+          runtimes = []
+          for runtime in inventory['runtimes']:
+              if not runtime.get('isAvailable') or f'.{family}-' not in runtime['identifier']:
+                  continue
+              runtimes.append((tuple(map(int, runtime['version'].split('.'))), runtime))
+          if not runtimes:
+              raise SystemExit('No available iOS runtime.')
+          _, runtime = max(runtimes, key=lambda item: item[0])
+
+          available = [d for d in inventory['devicetypes']
+                       if d['identifier'] in set(runtime.get('supportedDeviceTypes', []))] \
+                      or inventory['devicetypes']
+          chosen = None
+          for pattern in wanted:
+              matches = sorted((d for d in available if re.match(pattern, d['name'])),
+                               key=lambda d: d['name'], reverse=True)
+              if matches:
+                  chosen = matches[0]
+                  break
+          if chosen is None:
+              names = sorted(d['name'] for d in available)
+              raise SystemExit(f'No device type matches {wanted} for {device_class}.\n'
+                               f'Available: {names}')
+
+          name = f'Omni-Shots-{os.environ["GITHUB_RUN_ID"]}-{device_class}'
+          identifier = subprocess.check_output(
+              ['xcrun', 'simctl', 'create', name, chosen['identifier'], runtime['identifier']],
+              text=True).strip()
+          uuid.UUID(identifier)
+          with open(os.environ['GITHUB_ENV'], 'a') as out:
+              out.write(f'OMNI_SIMULATOR_ID={identifier}\n')
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+              # Published before boot so cleanup runs even if booting fails.
+              out.write(f'identifier={identifier}\n')
+              out.write(f'device={chosen["name"]}\n')
+          print(f'Using {chosen["name"]} on iOS {runtime["version"]} ({identifier})')
+          PY
+          xcrun simctl boot "$OMNI_SIMULATOR_ID"
+          xcrun simctl bootstatus "$OMNI_SIMULATOR_ID" -b
+
+      - name: Run the journey tests to capture screenshots
+        env:
+          DEVICE_CLASS: ${{ matrix.device_class }}
+        run: |
+          # Same suites the verification workflow runs; they already attach
+          # named screenshots with .keepAlways, so nothing test-side changes.
+          xcodebuild test \
+            -project Omni.xcodeproj \
+            -scheme Omni \
+            -configuration Debug \
+            -destination "platform=iOS Simulator,id=$OMNI_SIMULATOR_ID" \
+            -destination-timeout 120 \
+            -derivedDataPath "$OMNI_CI_ROOT/DerivedData" \
+            -resultBundlePath "$OMNI_CI_ROOT/$DEVICE_CLASS.xcresult" \
+            -parallel-testing-enabled NO \
+            -only-testing:OmniUITests/ClarityJourneyTests \
+            -only-testing:OmniUITests/MemoryJourneyTests \
+            OMNI_MEMORY_API_URL='' \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY='' DEVELOPMENT_TEAM=''
+
+      - name: Extract and size-check the screenshots
+        env:
+          DEVICE_CLASS: ${{ matrix.device_class }}
+        run: |
+          python3 scripts/extract_screenshots.py \
+            --xcresult "$OMNI_CI_ROOT/$DEVICE_CLASS.xcresult" \
+            --output "$OMNI_CI_ROOT/screenshots/$DEVICE_CLASS" \
+            --device-class "$DEVICE_CLASS"
+
+      - name: Upload the screenshots
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: omni-screenshots-${{ matrix.device_class }}
+          path: ${{ env.OMNI_CI_ROOT }}/screenshots/${{ matrix.device_class }}
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Write result summary
+        if: ${{ always() }}
+        env:
+          DEVICE_CLASS: ${{ matrix.device_class }}
+          DEVICE_NAME: ${{ steps.simulator.outputs.device }}
+        run: |
+          {
+            printf '## Screenshots: %s\n\n' "$DEVICE_CLASS"
+            printf '- Simulator: `%s`\n' "${DEVICE_NAME:-not created}"
+            dir="$OMNI_CI_ROOT/screenshots/$DEVICE_CLASS"
+            if [ -d "$dir" ]; then
+              printf '\n| File | Pixels |\n| --- | --- |\n'
+              for shot in "$dir"/*.png; do
+                [ -e "$shot" ] || continue
+                # sips is native on macOS; an inline python heredoc here would
+                # inherit this block's indentation and fail to parse.
+                size="$(sips -g pixelWidth -g pixelHeight "$shot" \
+                  | awk '/pixelWidth/{w=$2} /pixelHeight/{h=$2} END{print w"x"h}')"
+                printf '| %s | %s |\n' "$(basename "$shot")" "$size"
+              done
+            fi
+            printf '\nDownload the `omni-screenshots-%s` artifact and upload the ' "$DEVICE_CLASS"
+            printf 'ones you want to App Store Connect. These are raw captures of real app '
+            printf 'screens: reorder them, drop any that do not sell the app, and do not '
+            printf 'rescale them.\n'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Remove only this run's simulator
+        if: ${{ always() && steps.simulator.outputs.identifier != '' }}
+        env:
+          CREATED: ${{ steps.simulator.outputs.identifier }}
+        run: |
+          xcrun simctl shutdown "$CREATED" || true
+          xcrun simctl delete "$CREATED"
