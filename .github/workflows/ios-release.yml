@@ -209,8 +209,8 @@ jobs:
         run: |
           {
             printf '## Omni iOS App Store upload\n\n'
-            printf '- Version: `%s (%s)`\n' "${VERSION:-unknown}" "${BUILD:-unknown}"
-            printf '- Dry run: `%s`\n\n' "$DRY_RUN"
+            printf -- '- Version: `%s (%s)`\n' "${VERSION:-unknown}" "${BUILD:-unknown}"
+            printf -- '- Dry run: `%s`\n\n' "$DRY_RUN"
             if [ "$DRY_RUN" = "false" ]; then
               printf 'The build was uploaded to App Store Connect and will appear in '
               printf 'TestFlight after Apple finishes processing it.\n\n'

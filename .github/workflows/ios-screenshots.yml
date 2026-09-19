@@ -81,9 +81,15 @@ jobs:
               raise SystemExit('No available iOS runtime.')
           _, runtime = max(runtimes, key=lambda item: item[0])
 
+          # simctl reports supportedDeviceTypes as dicts, not identifier
+          # strings; accept either shape rather than assuming one.
+          supported = set()
+          for entry in runtime.get('supportedDeviceTypes', []):
+              identifier = entry.get('identifier') if isinstance(entry, dict) else entry
+              if identifier:
+                  supported.add(identifier)
           available = [d for d in inventory['devicetypes']
-                       if d['identifier'] in set(runtime.get('supportedDeviceTypes', []))] \
-                      or inventory['devicetypes']
+                       if d['identifier'] in supported] or inventory['devicetypes']
           chosen = None
           for pattern in wanted:
               matches = sorted((d for d in available if re.match(pattern, d['name'])),
@@ -134,6 +140,7 @@ jobs:
             CODE_SIGN_IDENTITY='' DEVELOPMENT_TEAM=''
 
       - name: Extract and size-check the screenshots
+        id: extract
         env:
           DEVICE_CLASS: ${{ matrix.device_class }}
         run: |
@@ -143,7 +150,10 @@ jobs:
             --device-class "$DEVICE_CLASS"
 
       - name: Upload the screenshots
-        if: ${{ !cancelled() }}
+        # Only when extraction actually produced files: otherwise
+        # if-no-files-found:error adds a second, misleading failure on top of
+        # whatever really went wrong earlier in the job.
+        if: ${{ !cancelled() && steps.extract.outcome == 'success' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: omni-screenshots-${{ matrix.device_class }}
@@ -159,7 +169,7 @@ jobs:
         run: |
           {
             printf '## Screenshots: %s\n\n' "$DEVICE_CLASS"
-            printf '- Simulator: `%s`\n' "${DEVICE_NAME:-not created}"
+            printf -- '- Simulator: `%s`\n' "${DEVICE_NAME:-not created}"
             dir="$OMNI_CI_ROOT/screenshots/$DEVICE_CLASS"
             if [ -d "$dir" ]; then
               printf '\n| File | Pixels |\n| --- | --- |\n'
