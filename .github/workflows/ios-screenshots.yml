@@ -124,6 +124,12 @@ jobs:
           xcrun simctl bootstatus "$omni_simulator_id" -b
 
       - name: Run the journey tests to capture screenshots
+        id: tests
+        # A failing assertion still leaves a result bundle full of usable
+        # screenshots, so capture them rather than throwing the run away. The
+        # failure is not swallowed: it is reported in the summary and the job
+        # is failed at the end, after the artifacts are uploaded.
+        continue-on-error: true
         env:
           DEVICE_CLASS: ${{ matrix.device_class }}
         run: |
@@ -146,9 +152,12 @@ jobs:
 
       - name: Extract and size-check the screenshots
         id: extract
+        if: ${{ !cancelled() }}
         env:
           DEVICE_CLASS: ${{ matrix.device_class }}
         run: |
+          # The bundle exists whether or not every test passed.
+          test -d "$OMNI_CI_ROOT/$DEVICE_CLASS.xcresult"
           python3 scripts/extract_screenshots.py \
             --xcresult "$OMNI_CI_ROOT/$DEVICE_CLASS.xcresult" \
             --output "$OMNI_CI_ROOT/screenshots/$DEVICE_CLASS" \
@@ -171,10 +180,16 @@ jobs:
         env:
           DEVICE_CLASS: ${{ matrix.device_class }}
           DEVICE_NAME: ${{ steps.simulator.outputs.device }}
+          TESTS_OUTCOME: ${{ steps.tests.outcome }}
         run: |
           {
             printf '## Screenshots: %s\n\n' "$DEVICE_CLASS"
             printf -- '- Simulator: `%s`\n' "${DEVICE_NAME:-not created}"
+            printf -- '- Journey tests: `%s`\n' "${TESTS_OUTCOME:-skipped}"
+            if [ "$TESTS_OUTCOME" = "failure" ]; then
+              printf -- '- A test failed. The screenshots below were still captured, '
+              printf 'but check the failing screen before using its frame.\n'
+            fi
             dir="$OMNI_CI_ROOT/screenshots/$DEVICE_CLASS"
             if [ -d "$dir" ]; then
               printf '\n| File | Pixels |\n| --- | --- |\n'
@@ -192,6 +207,15 @@ jobs:
             printf 'screens: reorder them, drop any that do not sell the app, and do not '
             printf 'rescale them.\n'
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail the job if a journey test failed
+        # Last, so the screenshots are uploaded and the summary written first.
+        # continue-on-error above must not turn a red suite green.
+        if: ${{ !cancelled() && steps.tests.outcome == 'failure' }}
+        run: |
+          echo "The journey tests failed; see the log above." >&2
+          echo "Screenshots were still captured and uploaded." >&2
+          exit 1
 
       - name: Remove only this run's simulator
         if: ${{ always() && steps.simulator.outputs.identifier != '' }}
