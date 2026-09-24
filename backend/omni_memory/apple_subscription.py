@@ -88,6 +88,13 @@ class AppleSubscriptionVerifier:
         except (AttributeError, ValueError, TypeError):
             return False
 
+    @classmethod
+    def _account_eligible(cls, transaction, subject):
+        # Guest StoreKit purchases legitimately omit appAccountToken. A verified
+        # guest purchase is claimed once by AccountService's durable owner ledger.
+        # A present token must still match; malformed/other-account tokens fail closed.
+        return transaction.appAccountToken is None or cls._same_account(transaction, subject)
+
     async def verify(self, subject, signed_transaction):
         if not self.configured:
             raise HTTPException(503, "App Store subscription verification is not configured.")
@@ -95,7 +102,7 @@ class AppleSubscriptionVerifier:
         return await self._verify_decoded(subject, transaction)
 
     async def _verify_decoded(self, subject, transaction):
-        if not self._same_account(transaction, subject):
+        if not self._account_eligible(transaction, subject):
             raise HTTPException(403, "This purchase is not linked to the signed-in Omni account.")
         if transaction.productId not in self.products or not transaction.originalTransactionId:
             raise HTTPException(422, "This purchase does not provide Omni Plus.")
@@ -121,7 +128,7 @@ class AppleSubscriptionVerifier:
                 raise HTTPException(503, "App Store subscription verification is temporarily unavailable.")
             for value in group.lastTransactions or []:
                 transaction = await self._decode(value.signedTransactionInfo)
-                if not self._same_account(transaction, subject) or transaction.productId not in self.products:
+                if not self._account_eligible(transaction, subject) or transaction.productId not in self.products:
                     continue
                 if str(transaction.originalTransactionId) != original_transaction_id:
                     continue

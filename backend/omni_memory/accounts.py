@@ -61,6 +61,18 @@ class AccountService:
                     WHERE subject IN (SELECT subject FROM account_subscriptions_legacy)""")
                 db.execute("DROP TABLE account_subscriptions_legacy")
 
+        # Keep ownership even if a user replaces the active subscription chain.
+        # This makes an unbound guest receipt claimable by only one live Omni account.
+        with self.memory.db() as db:
+            db.execute("""CREATE TABLE IF NOT EXISTS account_purchase_owners (
+                environment TEXT NOT NULL CHECK(environment IN ('Production','Sandbox')),
+                original_transaction_id TEXT NOT NULL,
+                subject TEXT NOT NULL REFERENCES account_identities(subject),
+                PRIMARY KEY(environment,original_transaction_id))""")
+            db.execute("""INSERT OR IGNORE INTO account_purchase_owners
+                SELECT environment,original_transaction_id,subject FROM account_subscriptions
+                WHERE environment IN ('Production','Sandbox')""")
+
     def _now(self):
         return int(self.memory.clock())
 
@@ -249,7 +261,11 @@ class AccountService:
             row = db.execute("SELECT deleting FROM account_identities WHERE subject=?", (subject,)).fetchone()
             if not row or row[0]:
                 raise HTTPException(401, "Sign in to your account again.")
-            owner = db.execute("SELECT subject FROM account_subscriptions WHERE environment=? AND original_transaction_id=?",
+            # Insert and check under the same write transaction: concurrent claims
+            # cannot assign a guest purchase to two accounts.
+            db.execute("INSERT OR IGNORE INTO account_purchase_owners VALUES(?,?,?)",
+                       (verified.environment, verified.original_transaction_id, subject))
+            owner = db.execute("SELECT subject FROM account_purchase_owners WHERE environment=? AND original_transaction_id=?",
                                (verified.environment, verified.original_transaction_id)).fetchone()
             if owner and owner[0] != subject:
                 raise HTTPException(403, "This purchase is linked to another Omni account.")
@@ -289,6 +305,7 @@ class AccountService:
                 db.execute("DELETE FROM native_snapshots WHERE subject=?", (subject,))
             db.execute("DELETE FROM account_sessions WHERE subject=?", (subject,))
             db.execute("DELETE FROM account_subscriptions WHERE subject=?", (subject,))
+            db.execute("DELETE FROM account_purchase_owners WHERE subject=?", (subject,))
             db.execute("DELETE FROM account_identities WHERE subject=?", (subject,))
             db.execute("DELETE FROM rate_limits WHERE subject=?", (subject,))
             db.execute("DELETE FROM accounts WHERE subject=?", (subject,))

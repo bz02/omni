@@ -373,3 +373,61 @@ def test_delete_clears_native_snapshot_and_new_login_is_new_account(system):
     with memory.db() as db:
         assert db.execute("SELECT COUNT(*) FROM native_snapshots").fetchone()[0] == 0
     assert login()["account_id"] != user["account_id"]
+
+
+def test_guest_purchase_links_once_after_optional_login_and_refreshes(system):
+    accounts, memory, clock, login, _ = system
+    user, other = login(), login('other-guest-claimant')
+    current, sign = store(accounts, clock, None)
+    first = run(accounts.subscription(user['account_id'], current['signed'], authorization='Bearer ' + user['access_token']))
+    assert first['premium_active']
+    assert run(accounts.subscription(user['account_id'], current['signed']))['premium_active']
+    with pytest.raises(HTTPException) as conflict:
+        run(accounts.subscription(other['account_id'], current['signed']))
+    assert conflict.value.status_code == 403
+    assert not accounts.session(other['account_id'])['premium_active']
+    clock.now += 301
+    run(accounts.authorize('Bearer ' + user['access_token']))
+    assert accounts.session(user['account_id'])['premium_active']
+    current['status'] = 5
+    clock.now += 301
+    run(accounts.authorize('Bearer ' + user['access_token']))
+    assert not accounts.session(user['account_id'])['premium_active']
+    with memory.db() as db:
+        assert db.execute('SELECT subject FROM account_purchase_owners').fetchone()[0] == user['account_id']
+
+
+def test_guest_purchase_owner_survives_replacement_and_is_removed_on_account_delete(system):
+    from omni_memory.apple_subscription import VerifiedEntitlement
+    accounts, memory, clock, login, _ = system
+    user, other = login(), login('different-guest-account')
+    current, _ = store(accounts, clock, None)
+    run(accounts.subscription(user['account_id'], current['signed']))
+    accounts._save_entitlement(user['account_id'], VerifiedEntitlement('20000000000001', clock.now + 3600, 'Sandbox'))
+    with pytest.raises(HTTPException) as conflict:
+        run(accounts.subscription(other['account_id'], current['signed']))
+    assert conflict.value.status_code == 403
+    run(accounts.delete_account(user['account_id']))
+    with memory.db() as db:
+        assert db.execute('SELECT COUNT(*) FROM account_purchase_owners WHERE subject=?', (user['account_id'],)).fetchone()[0] == 0
+    assert run(accounts.subscription(other['account_id'], current['signed']))['premium_active']
+
+
+@pytest.mark.parametrize('token', ['', 'not-a-uuid', '00000000-0000-0000-0000-000000000099'])
+def test_guest_support_does_not_accept_malformed_or_other_account_tokens(system, token):
+    accounts, _, clock, login, _ = system
+    user = login()
+    current, _ = store(accounts, clock, token)
+    with pytest.raises(HTTPException) as failure:
+        run(accounts.subscription(user['account_id'], current['signed']))
+    assert failure.value.status_code in (403, 422)
+    assert not accounts.session(user['account_id'])['premium_active']
+
+
+def test_guest_purchase_still_requires_live_matching_apple_status(system):
+    accounts, _, clock, login, _ = system
+    user = login()
+    current, sign = store(accounts, clock, None)
+    guest_receipt = current['signed']
+    current['signed'] = sign('00000000-0000-0000-0000-000000000099')
+    assert not run(accounts.subscription(user['account_id'], guest_receipt))['premium_active']

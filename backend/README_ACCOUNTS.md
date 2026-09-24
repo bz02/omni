@@ -52,7 +52,7 @@
 
 隔离测试服务可保留 `Sandbox`；严格仅接受正式交易的服务用 `Production`。供 App Store 提交版本访问的同一个服务，可显式配置 `ProductionAndSandbox`，以接受 Apple 签名的正式交易和审核/测试交易。不要仅凭应用分发方式猜测交易环境，也不要让客户端提交 `sandbox=true` 来授予权益。
 
-双环境入口先调用官方 Production 验签器。仅当其抛出 `INVALID_ENVIRONMENT` 时，才把原始 JWS 交给官方 Sandbox 验签器重新完整验证。官方库先验证证书、签名和 bundle，再检查交易环境；伪造环境、错误证书、签名或 bundle、上游故障不会触发放宽验证。两个环境都启用在线证书检查，均要求同一认可的产品和匹配的 `appAccountToken`，并查询各自的 Apple 当前订阅状态；Xcode、LocalTesting 和未知环境始终拒绝。[Apple 官方验证实现](https://apple.github.io/app-store-server-library-python/_modules/appstoreserverlibrary/signed_data_verifier.html)
+双环境入口先调用官方 Production 验签器。仅当其抛出 `INVALID_ENVIRONMENT` 时，才把原始 JWS 交给官方 Sandbox 验签器重新完整验证。官方库先验证证书、签名和 bundle，再检查交易环境；伪造环境、错误证书、签名或 bundle、上游故障不会触发放宽验证。两个环境都启用在线证书检查，均要求认可的产品；存在 `appAccountToken` 时必须匹配账号，游客购买可以省略此字段，并查询各自的 Apple 当前订阅状态；Xcode、LocalTesting 和未知环境始终拒绝。[Apple 官方验证实现](https://apple.github.io/app-store-server-library-python/_modules/appstoreserverlibrary/signed_data_verifier.html)
 
 成功验证后，数据库以 `(environment, original_transaction_id)` 约束购买归属，每个账号分别保存两个环境的订阅。后续验证只访问已经验证并保存的环境，不因失败转向另一个 API。Sandbox 的到期或故障不会覆盖仍有效的 Production 权益；从双环境改回单环境时，被禁用环境的缓存许可不能继续使用。Sandbox 交易用于审核/测试，并不代表真实营收，现有模型速率和预算限制仍需执行。
 
@@ -62,7 +62,7 @@
 
 ## 订阅资格
 
-StoreKit 购买必须设置 `.appAccountToken(accountID)`，提交客户端已验证交易的 `jwsRepresentation`。服务使用 Apple 官方 `app-store-server-library` 校验证书链、签名、环境与 bundle，并启用在线证书吊销检查。随后调用 Apple 当前订阅状态接口，重新验证返回的交易；仅持有历史签名交易不足以获得资格。
+已登录时 StoreKit 设置 `.appAccountToken(accountID)`；未登录可直接购买与恢复本地 Plus，不注册、不访问账号服务。用户以后选择登录时，提交客户端已验证交易的 `jwsRepresentation` 关联在线权益。没有 token 的购买以 `(environment, original_transaction_id)` 在 `account_purchase_owners` 中原子绑定一个账号；切换订阅不会释放旧购买归属，删除账号则清除关联。token 存在时仍须匹配账号，不能用其他账号的交易夺取在线权益。服务使用 Apple 官方 `app-store-server-library` 校验证书链、签名、环境与 bundle，并启用在线证书吊销检查。随后调用 Apple 当前订阅状态接口，重新验证返回的交易；仅持有历史签名交易不足以获得资格。
 
 交易必须属于当前账号 UUID、认可的 Plus 产品和所查询的原始交易。有效活动订阅以及有匹配、未过期签名续费信息的 Billing Grace Period 可获得资格；已撤销、过期、被升级替代、单纯 billing retry 均不授予。服务返回真实截止时间，但内部付费许可最多缓存 300 秒。后续受保护请求会刷新过期的缓存，因此退款状态最多有五分钟延迟；这不是已部署的 Apple 通知 webhook。
 
