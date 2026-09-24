@@ -121,15 +121,18 @@ final class AccountJourneyTests: XCTestCase {
     }
 
     private func selectTab(_ title: String) {
-        let tab = app.tabBars.buttons[title]
+        // iPadOS 18 places tabs in a top control outside the tabBars container.
+        let tab = app.buttons[title].firstMatch
         XCTAssertTrue(tab.waitForExistence(timeout: 10))
-        for _ in 0..<3 {
-            if tab.isSelected { return }
-            tab.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
-            let selected = XCTNSPredicateExpectation(predicate: NSPredicate(format: "selected == true"), object: tab)
-            if XCTWaiter.wait(for: [selected], timeout: 3) == .completed { return }
+        let destination: XCUIElement
+        switch title {
+        case "You": destination = app.staticTexts["You get to keep becoming."]
+        case "Today": destination = app.buttons["today.checkin"]
+        case "Journal": destination = app.staticTexts["A RECORD OF BECOMING"]
+        default: XCTFail("Unexpected tab in this journey"); return
         }
-        XCTFail("The \(title) tab did not become selected.")
+        tab.tap()
+        XCTAssertTrue(destination.waitForExistence(timeout: 10), "The \(title) destination must appear after selecting its tab.")
     }
 
     private func reveal(_ element: XCUIElement) {
