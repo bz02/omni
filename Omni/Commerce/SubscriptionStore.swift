@@ -42,7 +42,6 @@ final class SubscriptionStore: ObservableObject {
             }
         }
     }
-    private var requiresAccount: Bool { AccountConfiguration.baseURL != nil || accountStore?.hasConfiguration == true }
     private var accountObservation: AnyCancellable?
     private var identityRevision = 0
     private let deliveryQueue = StoreDeliveryQueue()
@@ -50,7 +49,6 @@ final class SubscriptionStore: ObservableObject {
         let revision: Int
         let account: AccountStore?
         let accountID: UUID?
-        let requiresAccount: Bool
     }
 
     private var updatesTask: Task<Void, Never>?
@@ -88,18 +86,18 @@ final class SubscriptionStore: ObservableObject {
 
     private func accountDidChange() {
         identityRevision += 1
-        refreshGeneration += 1
-        hasPremium = false
-        expirationTask?.cancel()
+        // StoreKit ownership survives an optional Omni sign-out or account switch.
+        deliveryIssue = nil
+        errorMessage = nil
     }
 
     private func purchaseIdentity() -> PurchaseIdentity {
-        PurchaseIdentity(revision: identityRevision, account: accountStore, accountID: accountStore?.accountID, requiresAccount: requiresAccount)
+        PurchaseIdentity(revision: identityRevision, account: accountStore, accountID: accountStore?.accountID)
     }
 
     private func isCurrent(_ identity: PurchaseIdentity) -> Bool {
         identityRevision == identity.revision && accountStore === identity.account
-            && accountStore?.accountID == identity.accountID && requiresAccount == identity.requiresAccount
+            && accountStore?.accountID == identity.accountID
     }
 
     /// Called only with StoreKit's Product, never a product or account supplied by a URL.
@@ -170,10 +168,6 @@ final class SubscriptionStore: ObservableObject {
         }
         guard !isLoading else { return false }
         let identity = purchaseIdentity()
-        guard !identity.requiresAccount || identity.accountID != nil else {
-            errorMessage = "Sign in with Apple in You → Account before subscribing, so your purchase belongs to the right Omni account."
-            return false
-        }
         guard Self.productIDs.contains(product.id),
               product.type == .autoRenewable, offer == nil || (offer?.type == .winBack && offer?.id != nil) else {
             errorMessage = "This subscription is unavailable. Reload the plans and try again."
@@ -185,26 +179,12 @@ final class SubscriptionStore: ObservableObject {
         defer { isLoading = false }
 
         do {
-            if identity.requiresAccount {
-                guard let account = identity.account else { throw AccountError.signInRequired }
-                _ = try await account.validAccessToken()
-            }
-            guard isCurrent(identity) else {
-                errorMessage = "Your Omni account changed. Review the signed-in account and tap Continue again."
-                return false
-            }
             var options: Set<Product.PurchaseOption> = identity.accountID.map { [.appAccountToken($0)] } ?? []
             if let offer { options.insert(.winBackOffer(offer)) }
             switch try await product.purchase(options: options) {
             case .success(let result):
-                guard isCurrent(identity) else {
-                    let transactionID: UInt64?
-                    if case .verified(let transaction) = result { transactionID = transaction.id } else { transactionID = nil }
-                    setDeliveryIssue(.differentAccount, "Your Omni account changed during the purchase. Sign in to the account you used to subscribe, then retry delivery. You won't be charged again.", transactionID: transactionID)
-                    return true
-                }
                 let delivered = await deliver(result)
-                if delivered && isCurrent(identity) && !hasPremium {
+                if delivered && !hasPremium {
                     errorMessage = "No active Plus subscription was found after this purchase. Please try Restore Purchases."
                 }
                 return true
@@ -226,10 +206,6 @@ final class SubscriptionStore: ObservableObject {
     /// Call only after the user taps Restore; sync may show Apple's sign-in UI.
     func restore() async {
         guard !isLoading else { return }
-        guard !requiresAccount || accountStore?.isSignedIn == true else {
-            setDeliveryIssue(.signIn, "Sign in to the Omni account used for your purchase before restoring. Your Apple Account and Omni account are checked separately.")
-            return
-        }
         isLoading = true
         errorMessage = nil
         defer { isLoading = false }
@@ -261,7 +237,6 @@ final class SubscriptionStore: ObservableObject {
     func refreshEntitlements() async {
         refreshGeneration += 1
         let generation = refreshGeneration
-        let identity = purchaseIdentity()
         var validUntil: [Date] = []
 
         for await result in Transaction.currentEntitlements {
@@ -271,9 +246,6 @@ final class SubscriptionStore: ObservableObject {
                   transaction.revocationDate == nil,
                   !transaction.isUpgraded,
                   let expiry = transaction.expirationDate else { continue }
-            if identity.requiresAccount {
-                guard let accountID = identity.accountID, transaction.appAccountToken == accountID else { continue }
-            }
 
             if expiry > Date() {
                 validUntil.append(expiry)
@@ -283,7 +255,7 @@ final class SubscriptionStore: ObservableObject {
         }
 
         // A slower, older refresh must not overwrite a more recent transaction update.
-        guard generation == refreshGeneration, isCurrent(identity) else { return }
+        guard generation == refreshGeneration else { return }
         let nextExpiration = validUntil.filter { $0 > Date() }.min()
         hasPremium = nextExpiration != nil
         scheduleExpirationRefresh(at: nextExpiration)
@@ -293,8 +265,8 @@ final class SubscriptionStore: ObservableObject {
         _ = await deliver(result)
     }
 
-    /// All entry points confirm the exact signed event before finishing it.
-    /// A valid signature never lets us attach an unbound purchase to whoever is signed in.
+    /// Local delivery depends only on StoreKit, never on Omni registration.
+    /// Online access is separately verified and bound by the server after optional sign-in.
     @discardableResult
     func deliver(_ result: VerificationResult<Transaction>) async -> Bool {
         guard case .verified(let transaction) = result else {
@@ -306,30 +278,30 @@ final class SubscriptionStore: ObservableObject {
         let identity = purchaseIdentity()
         await refreshEntitlements()
         guard isCurrent(identity) else { return false }
-        if identity.requiresAccount {
-            guard transaction.appAccountToken != nil else {
-                setDeliveryIssue(.unbound, "This App Store purchase isn't linked to an Omni account. Don't buy it again. Contact support so its ownership can be reviewed.", transactionID: transaction.id)
-                return false
-            }
-            guard let accountID = identity.accountID else {
-                setDeliveryIssue(.signIn, "Your App Store purchase is waiting. Sign in to the Omni account used for it, then retry delivery. You won't be charged again.", transactionID: transaction.id)
-                return false
-            }
-            guard transaction.appAccountToken == accountID else {
-                setDeliveryIssue(.differentAccount, "This purchase belongs to a different Omni account. Sign in to that account, then retry delivery. Don't buy it again.", transactionID: transaction.id)
-                return false
-            }
+        guard let accountID = identity.accountID else {
+            await transaction.finish()
+            return true
+        }
+        if let owner = transaction.appAccountToken, owner != accountID {
+            setDeliveryIssue(.differentAccount, "On-device Plus is available with your Apple Account. Online Plus is linked to a different Omni account. Sign in to that account to use online features; don't buy again.", transactionID: transaction.id)
+            await transaction.finish()
+            return true
         }
         let delivered = await deliveryQueue.deliver(transactionID: transaction.id, representation: result.jwsRepresentation,
             identityRevision: identity.revision, isCurrent: { [weak self] in self?.isCurrent(identity) == true },
             confirm: { [weak self] in
                 guard let self else { throw CancellationError() }
-                if identity.requiresAccount {
+                if identity.accountID != nil {
                     guard let account = identity.account else { throw AccountError.signInRequired }
                     do { try await account.syncSubscription(signedTransaction: result.jwsRepresentation) }
-                    catch {
+                    catch AccountError.http(403) {
                         if self.isCurrent(identity) {
-                            self.setDeliveryIssue(.server, "Your App Store purchase is verified, but online access couldn't be confirmed. Retry delivery when your account can connect. You won't be charged again.", transactionID: transaction.id)
+                            self.setDeliveryIssue(.differentAccount, "On-device Plus is active. This subscription is already linked to another Omni account for online features. Sign in to that account; don't buy again.", transactionID: transaction.id)
+                        }
+                        throw AccountError.http(403)
+                    } catch {
+                        if self.isCurrent(identity) {
+                            self.setDeliveryIssue(.server, "On-device Plus is available. Online access couldn't be confirmed. Retry delivery when your account can connect. You won't be charged again.", transactionID: transaction.id)
                         }
                         throw error
                     }
@@ -343,8 +315,8 @@ final class SubscriptionStore: ObservableObject {
         return delivered
     }
 
-    /// Startup, foreground, explicit retry and restore revisit unfinished purchases.
-    /// Temporary failures never remove them from StoreKit's delivery queue.
+    /// Current entitlements also link a completed guest purchase after optional sign-in.
+    /// Temporary online failures can be retried without purchasing again.
     func syncAccountEntitlements() async {
         guard !isRetryingDelivery else { return }
         isRetryingDelivery = true

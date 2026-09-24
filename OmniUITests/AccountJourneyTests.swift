@@ -32,7 +32,7 @@ final class AccountJourneyTests: XCTestCase {
         storeKit?.clearTransactions(); storeKit?.resetToDefaultState()
     }
 
-    func testUnavailableAccountServiceKeepsGuestJournalAndBlocksUnboundPurchase() {
+    func testUnavailableAccountServiceAllowsGuestPurchaseAndRestore() {
         let start = app.buttons["welcome.start"]
         XCTAssertTrue(start.waitForExistence(timeout: 10)); reveal(start); start.tap()
         let finish = app.buttons["welcome.finish"]
@@ -70,8 +70,7 @@ final class AccountJourneyTests: XCTestCase {
         selectTab("Journal")
         XCTAssertTrue(app.staticTexts["A quiet walk without my phone"].waitForExistence(timeout: 5))
 
-        // Real local StoreKit products are available, but the app must refuse
-        // purchase before invoking StoreKit without an Omni account binding.
+        // A failed optional account service must never gate StoreKit purchases.
         selectTab("You")
         let plus = app.buttons.containing(.staticText, identifier: "Explore Omni Plus").firstMatch
         for _ in 0..<7 {
@@ -81,10 +80,17 @@ final class AccountJourneyTests: XCTestCase {
         reveal(plus); plus.tap()
         let subscribe = app.buttons["plus.subscribe"]
         XCTAssertTrue(subscribe.waitForExistence(timeout: 10)); reveal(subscribe); subscribe.tap()
-        let blocked = app.staticTexts["Sign in with Apple in You → Account before subscribing, so your purchase belongs to the right Omni account."]
-        XCTAssertTrue(blocked.waitForExistence(timeout: 5))
-        XCTAssertTrue(storeKit.allTransactions().isEmpty, "An unsigned-in user must not create an unbound purchase in a configured build.")
-        XCTAssertFalse(app.staticTexts["Your Plus subscription is active"].exists)
+        let active = app.staticTexts["Your Plus subscription is active"]
+        XCTAssertTrue(active.waitForExistence(timeout: 10))
+        XCTAssertEqual(storeKit.allTransactions().count, 1)
+        XCTAssertFalse(app.buttons["account.appleSignIn"].exists)
+        let purchaseScreenshot = XCTAttachment(screenshot: app.screenshot())
+        purchaseScreenshot.name = "Guest-Plus-purchased-without-registration"
+        purchaseScreenshot.lifetime = .keepAlways; add(purchaseScreenshot)
+        let restore = app.buttons["plus.restore"]
+        reveal(restore); restore.tap()
+        XCTAssertTrue(active.waitForExistence(timeout: 10))
+        XCTAssertEqual(storeKit.allTransactions().count, 1, "Restore must not charge again.")
         app.buttons["Close"].tap()
         app.terminate(); app.launch()
         selectTab("Journal")

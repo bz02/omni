@@ -41,6 +41,9 @@ struct PlusScreen: View {
                         feature("bubble.left.and.bubble.right", "Talk things through", "Sign in with Apple for online AI conversations. We'll ask for your permission before sharing conversation content with OpenAI.")
                         feature("lock", "Your choices, your space", "Your journal stays on this iPhone. Syncing account memories and saved conversations is optional and asks for separate permission.")
                     }.padding(.vertical, 8)
+                    Text("No Omni account is needed to subscribe, restore purchases, or use on-device Plus. Sign in later only if you want online conversations or account memory sync.")
+                        .font(.system(size: 13)).foregroundStyle(OmniTheme.muted).lineSpacing(3)
+                        .accessibilityIdentifier("plus.optionalAccount")
                     if subscription.hasPremium {
                         OmniCard(color: OmniTheme.sage) { Label("Your Plus subscription is active", systemImage: "checkmark.seal.fill"); Text("Thank you for making space for yourself.").font(.subheadline) }
                         Button("Manage subscription") { openURL(URL(string: "https://apps.apple.com/account/subscriptions")!) }
@@ -74,7 +77,7 @@ struct PlusScreen: View {
                         Text(message).font(.system(size: 13)).foregroundStyle(OmniTheme.muted).padding(16).frame(maxWidth: .infinity, alignment: .leading).background(OmniTheme.peach.opacity(0.5), in: RoundedRectangle(cornerRadius: 14)).accessibilityIdentifier("plus.status")
                     }
                     HStack(spacing: 20) {
-                        Button("Restore purchases") { Task { await subscription.restore() } }.disabled(subscription.isLoading)
+                        Button("Restore purchases") { Task { await subscription.restore() } }.disabled(subscription.isLoading).accessibilityIdentifier("plus.restore")
                         Spacer(); Button("Privacy") { privacy = true }; Link("Terms", destination: ReleaseLinks.terms)
                     }.font(.system(size: 11))
                     Button("Keep using free") { dismiss() }.font(.system(size: 14)).frame(maxWidth: .infinity).padding(.vertical, 8)

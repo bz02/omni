@@ -11,7 +11,7 @@ struct AccountScreen: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
-                    PageHeading(eyebrow: "YOUR OWN ACCOUNT", title: account.isSignedIn ? "A space\nthat's yours." : "Bring a little\ncontinuity.", subtitle: "Sign in with Apple to connect your Omni account and online Plus access.")
+                    PageHeading(eyebrow: "YOUR OWN ACCOUNT", title: account.isSignedIn ? "A space\nthat's yours." : "Bring a little\ncontinuity.", subtitle: "Sign-in is optional. Purchase and restore on-device Plus without an Omni account. Sign in to connect online conversations and account memory sync.")
                     if !account.hasConfiguration {
                         OmniCard(color: OmniTheme.sage) {
                             Text("Accounts aren't connected yet.").font(OmniTheme.title(25))
@@ -33,7 +33,7 @@ struct AccountScreen: View {
                         OmniCard {
                             Text("A private way to sign in.").font(OmniTheme.title(25))
                             Text("Apple confirms your identity to Omni. Your Apple identity token and authorization code go to Omni's account service to complete sign-in; the app keeps only its session in the iPhone Keychain.").font(.system(size: 14)).lineSpacing(4)
-                            Text("Your guest memories and journal aren't automatically uploaded or merged. Online conversations ask for separate permission before sharing conversation content.").font(.system(size: 13)).foregroundStyle(OmniTheme.muted).lineSpacing(4)
+                            Text("If you have Plus, signing in links an unlinked subscription to this Omni account for online access. Your guest memories and journal aren't automatically uploaded or merged. Online conversations ask for separate permission before sharing conversation content.").font(.system(size: 13)).foregroundStyle(OmniTheme.muted).lineSpacing(4)
                         }
                         if account.challengeReady {
                             SignInWithAppleButton(.signIn) { request in account.configureAppleRequest(request) } onCompletion: { result in

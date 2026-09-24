@@ -91,19 +91,11 @@ private struct StorePurchaseSheet: View {
                     if let offer = pending.offer { Text(offerSummary(offer)).font(.subheadline) }
                     Text("Review the price, renewal terms, and any offer in Apple's confirmation sheet before approving payment.")
                         .font(.footnote).foregroundStyle(OmniTheme.muted)
-                    if account.hasConfiguration && !account.isSignedIn {
-                        Text("Sign in to Omni first so this subscription belongs to your account. Signing in doesn't start the purchase.")
-                        Button("Sign in with Apple") { showAccount = true }.font(.headline)
-                    } else {
-                        Text(account.hasConfiguration
-                             ? "This purchase will belong to the Omni account signed in on this device."
-                             : "This build provides on-device Plus features.").font(.subheadline)
-                        if account.hasConfiguration { Button("Review or switch account") { showAccount = true } }
-                        OmniButton(title: subscription.isLoading ? "Connecting to the App Store…" : "Continue to App Store", icon: "arrow.right") {
-                            Task { await subscription.continueStorePurchase(id: pending.id) }
-                        }.disabled(subscription.isLoading || !ReleaseLinks.purchasesReady)
-                            .accessibilityIdentifier("commerce.continueIntent")
-                    }
+                    Text("No Omni account is needed to purchase or restore on-device Plus. Optional sign-in connects online conversations and account memory sync.").font(.subheadline)
+                    OmniButton(title: subscription.isLoading ? "Connecting to the App Store…" : "Continue to App Store", icon: "arrow.right") {
+                        Task { await subscription.continueStorePurchase(id: pending.id) }
+                    }.disabled(subscription.isLoading || !ReleaseLinks.purchasesReady)
+                        .accessibilityIdentifier("commerce.continueIntent")
                     if !ReleaseLinks.purchasesReady { Text("Subscriptions aren't available in this build yet.").font(.footnote) }
                     if let message = subscription.errorMessage { Text(message).font(.footnote).foregroundStyle(OmniTheme.muted) }
                     HStack {

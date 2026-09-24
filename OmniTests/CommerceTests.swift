@@ -17,6 +17,10 @@ struct CommerceTests {
         let session = try makeSession()
         defer { cleanUp(session) }
         let store = SubscriptionStore()
+        let transport = CommerceAccountTransport(accountID: UUID())
+        let guest = AccountStore(transport: transport, vault: CommerceAccountVault(), baseURL: nil)
+        store.accountStore = guest
+        #expect(guest.hasConfiguration && !guest.isSignedIn)
         await store.loadProducts()
 
         #expect(Set(store.products.map(\.id)) == SubscriptionStore.productIDs)
@@ -38,6 +42,9 @@ struct CommerceTests {
         #expect(!store.isLoading)
         #expect(store.errorMessage == nil)
         let verified = try #require(await verifiedEntitlement(for: monthly.id))
+        #expect(verified.appAccountToken == nil)
+        #expect(await transport.signedEvents.isEmpty, "A guest purchase must not contact the account service.")
+        #expect(store.deliveryIssue == nil)
         #expect(verified.revocationDate == nil)
         #expect(try #require(verified.expirationDate) > Date())
 
@@ -105,6 +112,10 @@ struct CommerceTests {
         let transactionsBeforeRestore = session.allTransactions().count
 
         let reopened = SubscriptionStore()
+        let guestTransport = CommerceAccountTransport(accountID: UUID())
+        // Keep a strong reference: SubscriptionStore intentionally holds its account weakly.
+        let guest = AccountStore(transport: guestTransport, vault: CommerceAccountVault(), baseURL: nil)
+        reopened.accountStore = guest
         await reopened.restore()
         try await eventually { reopened.hasPremium }
         #expect(!reopened.isLoading)
@@ -144,8 +155,8 @@ struct CommerceTests {
         #expect(await transport.signedEvents.count >= 2, "Retry must submit StoreKit's signed event again; repeated enumerations can return a new JWS representation.")
     }
 
-    @Test("Unbound and another account's purchases are never attached, sent to the backend, or finished", arguments: [false, true])
-    func rejectsUnownedPurchases(wrongAccount: Bool) async throws {
+    @Test("Guest purchases can link after optional sign-in; another account's token never grants online access", arguments: [false, true])
+    func guestAndOtherAccountPurchases(wrongAccount: Bool) async throws {
         let session = try makeSession()
         defer { cleanUp(session) }
         let accountID = UUID()
@@ -155,15 +166,16 @@ struct CommerceTests {
         store.accountStore = account
         let result = try await buyBoundProduct(accountID: wrongAccount ? UUID() : nil)
         let transaction = try #require(try? result.payloadValue)
-        #expect(!(await store.deliver(result)))
-        #expect(!store.hasPremium)
-        #expect(!account.hasOnlinePremium)
-        #expect(store.deliveryIssue?.kind == (wrongAccount ? .differentAccount : .unbound))
-        #expect(await transport.signedEvents.isEmpty)
-        #expect(await isUnfinished(transaction.id))
+        #expect(await store.deliver(result))
+        #expect(store.hasPremium, "The Apple Account owns local Plus regardless of Omni identity.")
+        #expect(account.hasOnlinePremium == !wrongAccount)
+        #expect(await transport.signedEvents.isEmpty == wrongAccount)
+        #expect(!(await isUnfinished(transaction.id)))
+        if wrongAccount { #expect(store.deliveryIssue?.kind == .differentAccount) }
+        else { #expect(store.deliveryIssue == nil) }
     }
 
-    @Test("Sign-out during confirmation clears local access and preserves the purchase for its original account")
+    @Test("Sign-out preserves local Plus while online confirmation remains scoped to its original account")
     func signOutDuringDelivery() async throws {
         let session = try makeSession()
         defer { cleanUp(session) }
@@ -180,7 +192,7 @@ struct CommerceTests {
         await started.wait()
         #expect(store.hasPremium)
         #expect(await account.signOut())
-        #expect(!store.hasPremium, "Local entitlement must clear synchronously with account identity.")
+        #expect(store.hasPremium, "Signing out must not remove Apple-verified on-device Plus.")
         acknowledgement.open()
         #expect(!(await delivery.value))
         #expect(!account.hasOnlinePremium)
@@ -190,8 +202,9 @@ struct CommerceTests {
         let anotherTransport = CommerceAccountTransport(accountID: anotherID)
         let anotherAccount = makeAccount(anotherID, transport: anotherTransport)
         store.accountStore = anotherAccount
-        #expect(!(await store.deliver(result)))
-        #expect(!store.hasPremium)
+        #expect(await store.deliver(result))
+        #expect(store.hasPremium)
+        #expect(!anotherAccount.hasOnlinePremium)
         #expect(await anotherTransport.signedEvents.isEmpty)
         await transport.configure()
         let originalAccount = makeAccount(accountID, transport: transport)
@@ -201,7 +214,7 @@ struct CommerceTests {
         #expect(!(await isUnfinished(transaction.id)))
     }
 
-    @Test("Cold-start selections survive login and require an explicit Continue with the signed-in account token")
+    @Test("A cold-start Store intent buys as guest, then optional sign-in links the finished purchase without rebuying")
     func deferredPurchaseIntent() async throws {
         let session = try makeSession()
         defer { cleanUp(session) }
@@ -216,32 +229,36 @@ struct CommerceTests {
         store.receiveStorePurchase(product: monthly)
         store.receiveStorePurchase(product: monthly)
         store.receiveStorePurchase(product: yearly)
-        #expect(store.products.isEmpty, "An intent can arrive before the in-app catalog loads.")
+        #expect(store.products.isEmpty)
         #expect(store.pendingStorePurchases.count == 2)
+        #expect(session.allTransactions().isEmpty, "An intent alone must never start payment.")
         let firstID = try #require(store.pendingStorePurchase?.id)
         await store.continueStorePurchase(id: firstID)
-        #expect(session.allTransactions().isEmpty)
-        #expect(store.pendingStorePurchases.count == 2)
-        await store.restore()
-        #expect(store.deliveryIssue?.kind == .signIn)
-
-        await account.prepareSignIn()
-        try await account.exchangeAppleCredential(identityToken: "synthetic-identity", authorizationCode: "synthetic-code", challengeID: "commerce-challenge")
-        #expect(account.accountID == accountID)
-        #expect(session.allTransactions().isEmpty, "Signing in alone must never start a purchase.")
-        await store.syncAccountEntitlements()
-        #expect(store.deliveryIssue == nil, "Signing in resolves the generic restore sign-in prompt.")
-        await store.continueStorePurchase(id: firstID)
         let transaction = try #require(await verifiedEntitlement(for: monthly.id))
-        #expect(transaction.appAccountToken == accountID)
+        #expect(transaction.appAccountToken == nil)
+        #expect(store.hasPremium)
         #expect(!(await isUnfinished(transaction.id)))
-        #expect(account.hasOnlinePremium)
+        #expect(await transport.signedEvents.isEmpty)
+        #expect(store.deliveryIssue == nil)
         #expect(store.pendingStorePurchase?.product.id == yearly.id)
-        // A dismissed first sheet must not cancel the next queued selection.
         store.cancelStorePurchase(id: firstID)
         #expect(store.pendingStorePurchase?.product.id == yearly.id)
         store.cancelStorePurchase(id: try #require(store.pendingStorePurchase?.id))
         #expect(store.pendingStorePurchases.isEmpty)
+
+        await account.prepareSignIn()
+        try await account.exchangeAppleCredential(identityToken: "synthetic-identity", authorizationCode: "synthetic-code", challengeID: "commerce-challenge")
+        await store.syncAccountEntitlements()
+        #expect(account.accountID == accountID)
+        #expect(account.hasOnlinePremium)
+        #expect(store.hasPremium)
+        #expect(session.allTransactions().count == 1, "Optional login must link the existing purchase, not charge again.")
+        #expect(await account.signOut())
+        #expect(store.hasPremium)
+        #expect(!account.hasOnlinePremium)
+        await store.restore()
+        #expect(store.hasPremium)
+        #expect(store.deliveryIssue == nil)
         #expect(session.allTransactions().count == 1)
     }
 
