@@ -27,12 +27,16 @@ struct MemoryConversationScreen: View {
     @State private var savedInHistory = false
     @FocusState private var composerFocused: Bool
 
+    init(initialDraft: String = "") {
+        _draft = State(initialValue: String(initialDraft.prefix(4000)))
+    }
+
     var body: some View {
         NavigationStack {
             ScrollViewReader { proxy in
                 ScrollView {
                     VStack(alignment: .leading, spacing: 22) {
-                        PageHeading(eyebrow: "A LITTLE CONTINUITY", title: "Pick up\nwhere you are.", subtitle: "A conversation with room for what matters to you.")
+                        PageHeading(eyebrow: "YOUR PERSONAL ASTROLOGER", title: "What’s in\nyour stars?", subtitle: "Explore your horoscope, love, work and the energy you want to bring into today.")
                         HStack(spacing: 12) {
                             Button { showMemory = true } label: { Label("Memory", systemImage: "brain.head.profile") }.accessibilityIdentifier("talk.memory")
                             Spacer()
@@ -46,21 +50,27 @@ struct MemoryConversationScreen: View {
 
                         if !subscription.hasPremium {
                             OmniCard(color: OmniTheme.sage) {
-                                Text("A little more continuity with Plus").font(OmniTheme.title(24))
-                                Text("Plus can use the memories you choose in future conversations. Existing memories and history stay yours to view, correct, delete and export.").font(.system(size: 14)).lineSpacing(4)
+                                Text("Personal readings with Omni Plus").font(OmniTheme.title(24))
+                                Text("Chat with Omni AI about your horoscope, relationships and daily style. Choose what Omni remembers for your next reading. Apple sign-in and your permission are required for online chat.").font(.system(size: 14)).lineSpacing(4)
                                 Button("Explore Plus") { showPlus = true }.font(.headline).accessibilityIdentifier("talk.plus")
                             }
                         }
                         if !chatAvailable {
                             OmniCard {
-                                Label("Conversations aren't connected yet", systemImage: "bubble.left.and.bubble.right").font(.headline)
+                                Label(account.hasConfiguration ? "Sign in for your personal reading" : "Chat is temporarily unavailable", systemImage: "bubble.left.and.bubble.right").font(.headline)
                                 Text(account.hasConfiguration ? "Sign in to use your account's memories in conversations. Your local journal stays on this device." : "You can manage your memories now. Online conversation access will appear here when the service and your account are ready.").font(.system(size: 13)).foregroundStyle(OmniTheme.muted).lineSpacing(4)
                                 if account.hasConfiguration { Button("Connect your account") { showAccount = true }.font(.headline) }
                             }.accessibilityIdentifier("talk.unavailable")
                         }
                         if conversation.messages.isEmpty {
-                            Text("What would you like to talk through?").font(OmniTheme.title(25)).padding(.top, 6)
-                            Text("You could start with a moment from today, something you need, or a conversation you're preparing for.").font(.system(size: 14)).foregroundStyle(OmniTheme.muted).lineSpacing(4)
+                            Text("Choose a starting point").font(OmniTheme.title(25)).padding(.top, 6)
+                            Text("Tell me your Sun sign or birthday, and what’s on your mind. Birth time is optional for a general reading.").font(.system(size: 14)).foregroundStyle(OmniTheme.muted).lineSpacing(4)
+                            ForEach(CosmicChatStarter.allCases) { starter in
+                                Button { draft = starter.prompt(); composerFocused = true } label: {
+                                    Label(starter.rawValue, systemImage: starter.icon).frame(maxWidth: .infinity, alignment: .leading).padding(14)
+                                        .background(.white.opacity(0.8), in: RoundedRectangle(cornerRadius: 14))
+                                }.buttonStyle(.plain).accessibilityIdentifier("talk.starter.\(starter.id)")
+                            }
                         }
                         ForEach(conversation.messages) { message in messageView(message).id(message.id) }
                         if !temporary && memory.settings.enabled && subscription.hasPremium {
@@ -81,8 +91,16 @@ struct MemoryConversationScreen: View {
                                 }
                             }
                         }
-                        if sending { ProgressView("Making a little room for your thoughts…").font(.caption) }
-                        if let status { Text(status).font(.system(size: 13)).foregroundStyle(OmniTheme.muted).accessibilityIdentifier("talk.status") }
+                        if sending { ProgressView("Preparing your reading…").font(.caption) }
+                        if let status {
+                            Text(status).font(.system(size: 13)).foregroundStyle(OmniTheme.muted).accessibilityIdentifier("talk.status")
+                            if !sending {
+                                HStack {
+                                    Button("Try again") { send() }.accessibilityIdentifier("talk.retry")
+                                    Button("Account & connection") { showAccount = true }
+                                }.font(.subheadline)
+                            }
+                        }
                         if !conversation.messages.isEmpty, !savedInHistory, !temporary, memory.settings.saveHistory, subscription.hasPremium {
                             Button("Save this conversation") { saveCurrentConversation() }.font(.subheadline)
                         }
@@ -131,7 +149,7 @@ struct MemoryConversationScreen: View {
     private var composer: some View {
         VStack(spacing: 9) {
             HStack(alignment: .bottom, spacing: 12) {
-                TextField("What's on your mind?", text: $draft, axis: .vertical)
+                TextField("Ask about your horoscope, love or today…", text: $draft, axis: .vertical)
                     .lineLimit(1...5).focused($composerFocused)
                     .onChange(of: draft) { _, value in if value.count > 4000 { draft = String(value.prefix(4000)) } }
                     .padding(14).background(.white, in: RoundedRectangle(cornerRadius: 16))
@@ -140,11 +158,11 @@ struct MemoryConversationScreen: View {
                     composerFocused = false
                     send()
                 } label: { Image(systemName: "arrow.up").font(.headline).foregroundStyle(.white).frame(width: 46, height: 46).background(OmniTheme.ink, in: Circle()) }
-                    .disabled(sending || draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !chatAvailable)
+                    .disabled(sending || draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !account.hasConfiguration)
                     .accessibilityLabel("Send message").accessibilityIdentifier("talk.send")
             }
-            if composerFocused { Button("Done") { composerFocused = false }.font(.caption).frame(maxWidth: .infinity, alignment: .trailing) }
-            Text("Your choices come first. Omni can make mistakes.").font(.system(size: 10)).foregroundStyle(OmniTheme.muted)
+            if composerFocused { Button("Done") { composerFocused = false }.accessibilityIdentifier("talk.keyboardDone").font(.caption).frame(maxWidth: .infinity, alignment: .trailing) }
+            Text("AI readings for reflection and entertainment. Your choices come first.").font(.system(size: 10)).foregroundStyle(OmniTheme.muted)
         }.padding(.horizontal, 20).padding(.vertical, 12).background(OmniTheme.paper)
     }
 
@@ -240,6 +258,8 @@ struct MemoryConversationScreen: View {
 
     private func send() {
         guard !sending else { return }
+        guard account.hasConfiguration else { status = MemoryChatError.unavailable.localizedDescription; return }
+        guard chatAvailable else { showAccount = true; return }
         guard subscription.hasPremium else { showPlus = true; return }
         guard memory.settings.allowOnlineConversations else { showConsent = true; return }
         let text = draft.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -260,6 +280,16 @@ struct MemoryConversationScreen: View {
                 guard activeRequestID == requestID, conversation.id == existing.id,
                       ownerID == memory.ownerID, revision == memory.revision,
                       memory.settings.allowOnlineConversations, subscription.hasPremium else { return }
+                // A completed guest purchase may not yet be linked to this account.
+                // Retry delivery, never start another purchase from the chat flow.
+                if !account.hasOnlinePremium {
+                    await subscription.syncAccountEntitlements()
+                    guard account.accountID == ownerID, activeRequestID == requestID else { return }
+                    guard account.hasOnlinePremium else {
+                        status = subscription.deliveryIssue?.message ?? account.errorMessage ?? "Your Plus purchase has not connected to this account yet. Open Account & connection or restore your purchase in Plus. Don’t buy again."
+                        return
+                    }
+                }
                 let token = try await account.validAccessToken()
                 guard account.accountID == ownerID, activeRequestID == requestID,
                       revision == memory.revision, memory.settings.allowOnlineConversations else { return }
@@ -288,7 +318,7 @@ struct MemoryConversationScreen: View {
             } catch is CancellationError {
                 // A cancelled request must not write messages or bring erased context back.
             } catch {
-                if !Task.isCancelled && activeRequestID == requestID { status = (error as? MemoryChatError)?.localizedDescription ?? "The conversation couldn't connect. Your draft is still here. Please try again." }
+                if !Task.isCancelled && activeRequestID == requestID { status = (error as? MemoryChatError)?.localizedDescription ?? (error as? AccountError)?.localizedDescription ?? "The conversation couldn't connect. Your draft is still here. Please try again." }
             }
         }
     }

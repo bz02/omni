@@ -98,8 +98,9 @@ struct AccountHTTPTransport: AccountTransport {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         if let accessToken { request.setValue("Bearer " + accessToken, forHTTPHeaderField: "Authorization") }
         let configuration = URLSessionConfiguration.ephemeral
-        configuration.timeoutIntervalForRequest = 25
-        configuration.timeoutIntervalForResource = 35
+        let imageGeneration = path == "/v1/cosmos/images" && method == "POST"
+        configuration.timeoutIntervalForRequest = imageGeneration ? 170 : 25
+        configuration.timeoutIntervalForResource = imageGeneration ? 180 : 35
         configuration.httpCookieStorage = nil
         configuration.urlCache = nil
         let session = URLSession(configuration: configuration, delegate: AccountRedirectPolicy(), delegateQueue: nil)
@@ -108,7 +109,7 @@ struct AccountHTTPTransport: AccountTransport {
         try Task.checkCancellation()
         guard let http = response as? HTTPURLResponse else { throw AccountError.invalidResponse }
         guard (200...299).contains(http.statusCode) else { throw AccountError.http(http.statusCode) }
-        guard data.count <= 100_000 else { throw AccountError.invalidResponse }
+        guard data.count <= (imageGeneration ? 3_000_000 : 100_000) else { throw AccountError.invalidResponse }
         return data
     }
 }

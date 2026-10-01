@@ -123,8 +123,8 @@ final class MemoryJourneyTests: XCTestCase {
         app.buttons["memory.done"].tap()
 
         selectTab("Talk")
-        reveal(app.staticTexts["Conversations aren't connected yet"])
-        XCTAssertTrue(app.staticTexts["Conversations aren't connected yet"].exists)
+        reveal(app.staticTexts["Chat is temporarily unavailable"])
+        XCTAssertTrue(app.staticTexts["Chat is temporarily unavailable"].exists)
         XCTAssertFalse(app.buttons["talk.send"].isEnabled)
         let temporary = app.switches["talk.temporary"]
         scrollToTop(temporary); temporary.tap()

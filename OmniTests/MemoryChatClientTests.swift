@@ -99,6 +99,17 @@ struct MemoryChatClientTests {
         }
     }
 
+    @Test("Monthly allowance exhaustion does not tell users to retry in a moment")
+    func monthlyAllowanceError() async throws {
+        MemoryURLProtocol.handler = { _ in (429, Data(#"{"detail":"Omni's monthly AI allowance is currently used up. Your saved data remains available."}"#.utf8)) }
+        do {
+            _ = try await client().reply(to: "My horoscope", memories: [], history: [], temporary: false, ownerID: UUID(), consent: true)
+            Issue.record("Expected allowance error")
+        } catch let error as MemoryChatError {
+            guard case .allowanceExhausted = error else { Issue.record("Misleading retry advice"); return }
+        }
+    }
+
     private func client() -> MemoryChatClient {
         let config = URLSessionConfiguration.ephemeral
         config.protocolClasses = [MemoryURLProtocol.self]

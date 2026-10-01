@@ -5,6 +5,7 @@ struct TodayScreen: View {
     @State private var checkIn = false
     @State private var reflection: DailyEntry?
     @State private var showLens = false
+    @State private var showCosmos = false
     @State private var now = Date()
     @Environment(\.scenePhase) private var scenePhase
     private var ritual: DailyRitual { ReflectionLibrary.focusedRitual(for: now, focus: store.profile?.focus ?? .myself) }
@@ -18,6 +19,17 @@ struct TodayScreen: View {
                         Spacer()
                         HStack(spacing: 6) { Circle().fill(OmniTheme.gold).frame(width: 5, height: 5); Text("YOUR DAILY PAUSE").font(.system(size: 9, weight: .medium, design: .monospaced)).tracking(1) }
                     }.padding(.bottom, 5)
+                    Button { showCosmos = true } label: {
+                        OmniCard(color: Color(hex: "2D004B")) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 7) {
+                                    Text("EXPLORE YOUR COSMOS").font(.caption.monospaced()).tracking(1.5)
+                                    Text("Your sign. Your cards. Your style.").font(OmniTheme.title(24))
+                                }
+                                Spacer(); Image(systemName: "sparkles").font(.title)
+                            }.foregroundStyle(.white)
+                        }
+                    }.buttonStyle(.plain).accessibilityIdentifier("today.cosmos")
                     HStack {
                         Eyebrow(text: now.formatted(.dateTime.weekday(.wide).month(.abbreviated).day()))
                         Spacer()
@@ -62,6 +74,7 @@ struct TodayScreen: View {
                 .sheet(isPresented: $checkIn) { CheckInSheet(existing: entry) }
                 .sheet(item: $reflection) { ReflectionSheet(entry: $0) }
                 .sheet(isPresented: $showLens) { ReflectionLensSheet(ritual: ritual) }
+                .sheet(isPresented: $showCosmos) { CosmosScreen() }
                 .onChange(of: scenePhase) { _, phase in if phase == .active { now = Date() } }
                 .onReceive(Timer.publish(every: 60, on: .main, in: .common).autoconnect()) { now = $0 }
         }

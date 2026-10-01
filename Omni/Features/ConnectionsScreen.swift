@@ -5,11 +5,20 @@ struct ConnectionsScreen: View {
     @EnvironmentObject private var subscription: SubscriptionStore
     @State private var selected: ConnectionKind?
     @State private var paywall = false
+    @State private var showDating = false
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 25) {
                     PageHeading(eyebrow: "CONNECTION STARTS WITH YOU", title: "Less guessing.\nMore connection.", subtitle: "A little support for the moments that feel like a lot. You can do this on your own.")
+                    if ReleaseFeatures.dating {
+                    OmniCard(color: OmniTheme.sage) {
+                        Eyebrow(text: "NEW · COSMIC CONNECTIONS")
+                        Text("Meet someone. Be yourself.").font(OmniTheme.title(28))
+                        Text("Opt in to birthday-inspired discovery. Chat when you both choose to connect.").font(.subheadline)
+                        Button("Explore dating", systemImage: "heart.circle") { showDating = true }.accessibilityIdentifier("connect.dating")
+                    }
+                    }
                     OmniCard(color: OmniTheme.peach.opacity(0.7)) {
                         HStack(alignment: .top) {
                             VStack(alignment: .leading, spacing: 12) {
@@ -41,6 +50,7 @@ struct ConnectionsScreen: View {
             }.background(OmniTheme.paper).toolbar(.hidden, for: .navigationBar)
                 .sheet(item: $selected) { ConnectionFlow(kind: $0) }
                 .sheet(isPresented: $paywall) { PlusScreen() }
+                .sheet(isPresented: $showDating) { DatingScreen() }
         }
     }
     private func begin(_ kind: ConnectionKind) {

@@ -29,8 +29,8 @@ final class ClarityJourneyTests: XCTestCase {
         app.buttons["checkin.save"].tap()
         XCTAssertTrue(app.staticTexts["Take a quiet walk before dinner"].waitForExistence(timeout: 5))
         app.terminate(); app.launch()
-        XCTAssertTrue(app.tabBars.buttons["Journal"].waitForExistence(timeout: 10))
-        app.tabBars.buttons["Journal"].tap()
+        XCTAssertTrue(app.buttons["Journal"].firstMatch.waitForExistence(timeout: 10))
+        app.buttons["Journal"].firstMatch.tap()
         XCTAssertTrue(app.staticTexts["Take a quiet walk before dinner"].waitForExistence(timeout: 5))
         app.staticTexts["Take a quiet walk before dinner"].tap()
         app.buttons["Add a reflection"].tap()
@@ -44,7 +44,7 @@ final class ClarityJourneyTests: XCTestCase {
 
     func testConnectionFlowSavedWithoutSendingMessages() {
         onboard()
-        app.tabBars.buttons["Connect"].tap()
+        app.buttons["Connect"].firstMatch.tap()
         screenshot("04-Connect")
         app.buttons["connect.uncertainty"].tap()
         fill("What do you know for sure?", "They have not replied since lunch")
@@ -56,10 +56,10 @@ final class ClarityJourneyTests: XCTestCase {
         screenshot("05-Clarity")
         reveal(app.buttons["connection.done"])
         app.buttons["connection.done"].tap()
-        app.tabBars.buttons["Journal"].tap()
+        app.buttons["Journal"].firstMatch.tap()
         app.buttons["Connections"].tap()
         XCTAssertTrue(app.staticTexts["They have not replied since lunch"].waitForExistence(timeout: 5))
-        app.tabBars.buttons["Connect"].tap()
+        app.buttons["Connect"].firstMatch.tap()
         app.buttons["connect.uncertainty"].tap()
         XCTAssertTrue(app.staticTexts["OMNI PLUS"].waitForExistence(timeout: 5))
         screenshot("06-Plus")
@@ -68,13 +68,60 @@ final class ClarityJourneyTests: XCTestCase {
 
     func testSettingsOfferPrivacyAndKeepChartsHiddenWithoutEndpoint() {
         onboard()
-        app.tabBars.buttons["You"].tap()
+        app.buttons["You"].firstMatch.tap()
         screenshot("07-You")
         XCTAssertTrue(app.buttons["Export my journal"].exists)
         XCTAssertFalse(app.buttons["Explore my birth chart"].exists)
         app.buttons["Privacy & your data"].tap()
         XCTAssertTrue(app.staticTexts["Your journal"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["Reflection guidance"].exists)
+    }
+
+    func testCosmosSharesOutfitAndReturnsToExistingApp() {
+        onboard()
+        let cosmos = app.buttons["today.cosmos"]
+        XCTAssertTrue(cosmos.waitForExistence(timeout: 5))
+        cosmos.tap()
+        XCTAssertTrue(app.buttons["cosmos.horoscope"].waitForExistence(timeout: 5))
+        let poster = app.buttons["cosmos.poster"]
+        reveal(poster); poster.tap()
+        let share = app.buttons["Share image"]
+        reveal(share)
+        screenshot("08-Cosmos-Outfit")
+        app.navigationBars.buttons["Done"].tap()
+        XCTAssertTrue(app.buttons["Today"].firstMatch.waitForExistence(timeout: 5))
+        let checkIn = app.buttons["today.checkin"]
+        reveal(checkIn); checkIn.tap()
+        XCTAssertTrue(app.buttons["Hopeful"].waitForExistence(timeout: 5))
+        app.buttons["Close"].tap()
+        for tab in ["Connect", "Talk", "Journal", "You"] {
+            XCTAssertTrue(app.buttons[tab].firstMatch.exists)
+        }
+    }
+
+    func testReadyCosmosAndAstrologyChatPreserveGuestNavigation() {
+        onboard()
+        app.buttons["Connect"].firstMatch.tap()
+        XCTAssertFalse(app.buttons["connect.dating"].exists)
+        app.buttons["Today"].firstMatch.tap()
+        app.buttons["today.cosmos"].tap()
+        let profile = app.buttons["cosmos.profile"]
+        reveal(profile); profile.tap()
+        XCTAssertTrue(app.buttons["Manage memory & privacy"].waitForExistence(timeout: 5))
+        app.buttons["cosmicProfile.done"].tap()
+        XCTAssertFalse(app.buttons["cosmos.imageStudio"].exists)
+        app.buttons["cosmos.done"].tap()
+        app.buttons["Talk"].firstMatch.tap()
+        let horoscope = app.buttons["talk.starter.horoscope"]
+        reveal(horoscope); horoscope.tap()
+        let field = app.descendants(matching: .any).matching(identifier: "talk.message").firstMatch
+        XCTAssertTrue((field.value as? String)?.contains("personal horoscope") == true)
+        app.buttons["talk.keyboardDone"].tap()
+        screenshot("11-Astrology-Chat-Starter")
+        app.buttons["Today"].firstMatch.tap()
+        let checkIn = app.buttons["today.checkin"]
+        reveal(checkIn); checkIn.tap()
+        XCTAssertTrue(app.buttons["Hopeful"].waitForExistence(timeout: 5))
     }
 
     private func onboard() {
@@ -84,7 +131,7 @@ final class ClarityJourneyTests: XCTestCase {
         let finish = app.buttons["welcome.finish"]
         XCTAssertTrue(finish.waitForExistence(timeout: 5))
         reveal(finish); finish.tap()
-        XCTAssertTrue(app.tabBars.buttons["Today"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["Today"].firstMatch.waitForExistence(timeout: 5))
     }
 
     private func fill(_ prompt: String, _ value: String) {

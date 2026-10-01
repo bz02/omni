@@ -15,13 +15,14 @@ struct MemorySuggestion: Identifiable, Sendable {
 }
 
 enum MemoryChatError: LocalizedError {
-    case unavailable, consentRequired, expiredSession, subscriptionRequired, rateLimited, providerUnavailable, invalidResponse
+    case unavailable, consentRequired, expiredSession, subscriptionRequired, rateLimited, allowanceExhausted, providerUnavailable, invalidResponse
     var errorDescription: String? {
         switch self {
         case .unavailable: "Conversations aren't connected in this build yet. You can still manage your memories."
         case .consentRequired: "Choose whether to allow the conversation service before sending."
-        case .expiredSession: "Your conversation session has expired. Please connect your account again when account access is available."
+        case .expiredSession: "Your conversation session has expired. Open Account & connection to sign in again. Your draft is still here."
         case .subscriptionRequired: "An active Plus subscription is required for conversations. Your saved records are still yours to manage."
+        case .allowanceExhausted: "Omni’s AI allowance is temporarily used up. Your draft and saved data are safe. Please contact support or try next month."
         case .rateLimited: "You've sent several messages in a short time. Give it a moment, then try again."
         case .providerUnavailable: "The conversation service isn't available right now. Your message hasn't been added to saved history."
         case .invalidResponse: "The conversation couldn't be completed. Please try again."
@@ -105,6 +106,7 @@ struct MemoryChatClient {
 
     static func isAvailable(ownerID: UUID) -> Bool { endpoint != nil && MemorySessionVault.token(ownerID: ownerID) != nil }
 
+    private struct ServiceError: Decodable { let detail: String }
     private struct ContextItem: Encodable { let id: String; let kind: String; let text: String }
     private struct HistoryItem: Encodable { let role: String; let content: String }
     private struct Payload: Encodable {
@@ -153,7 +155,12 @@ struct MemoryChatClient {
         case 200: break
         case 401: throw MemoryChatError.expiredSession
         case 402, 403: throw MemoryChatError.subscriptionRequired
-        case 429: throw MemoryChatError.rateLimited
+        case 429:
+            if let error = try? JSONDecoder().decode(ServiceError.self, from: data),
+               error.detail == "Omni's monthly AI allowance is currently used up. Your saved data remains available." {
+                throw MemoryChatError.allowanceExhausted
+            }
+            throw MemoryChatError.rateLimited
         case 502, 503, 504: throw MemoryChatError.providerUnavailable
         default: throw MemoryChatError.invalidResponse
         }
