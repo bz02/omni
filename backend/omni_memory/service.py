@@ -61,6 +61,11 @@ class MemoryService:
                     PRIMARY KEY(subject,bucket));
             """)
 
+        from .budget import ModelBudget
+        self.model_budget = ModelBudget(self)
+        if isinstance(self.responder, ResponsesResponder):
+            self.responder.budget = self.model_budget
+
     @classmethod
     def from_env(cls):
         return cls(os.environ.get("OMNI_MEMORY_DB", "./data/memory.sqlite3"), secret=os.environ.get("OMNI_MEMORY_SESSION_SECRET", ""))
