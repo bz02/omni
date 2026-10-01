@@ -20,6 +20,6 @@ enum CosmicChatStarter: String, CaseIterable, Identifiable {
         case .work: topic = "Help me explore my career energy for today, \(day), through astrology, with a practical next step."
         case .style: topic = "Recommend a zodiac-inspired outfit for today, \(day), using any style preferences I have chosen to save. Ask about occasion and weather if needed."
         }
-        return topic + " Use relevant birth details I explicitly saved if available. Otherwise ask for my Sun sign or birthday. Keep interpretations symbolic; don’t invent a calculated chart or current planetary positions."
+        return topic
     }
 }

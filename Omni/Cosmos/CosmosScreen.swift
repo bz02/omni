@@ -49,7 +49,7 @@ struct CosmosScreen: View {
                         Text("What might today hold?").font(OmniTheme.title(27))
                         Text("Explore love, work and your next small step with Omni's AI astrologer.").font(.subheadline)
                         Button("Ask about my day", systemImage: "sparkles") {
-                            chat = CosmicConversationDraft(text: "Give me a warm, specific daily horoscope for \(sign.rawValue) on \(now.formatted(date: .complete, time: .omitted)). Cover love, work, and one practical action. This is a general Sun-sign reading: do not invent my birth chart, current planetary positions, or exact future events. Frame it as astrology for entertainment and personal exploration.")
+                            chat = CosmicConversationDraft(text: "Give me a warm, specific daily horoscope for \(sign.rawValue) on \(now.formatted(date: .complete, time: .omitted)). Cover love, work, and one practical action.")
                         }.accessibilityIdentifier("cosmos.horoscope")
                         if ChartScreen.isAvailable {
                             Button("Calculate my birth chart", systemImage: "circle.hexagongrid") { showChart = true }
