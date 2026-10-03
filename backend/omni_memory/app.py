@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from pathlib import Path
+import asyncio
+from contextlib import asynccontextmanager, suppress
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
@@ -13,6 +15,7 @@ from .auth import verify_session
 from .models import ChatRequest, MemoryCreate, MemoryUpdate, SettingsUpdate
 from .service import MemoryService
 from .sync import SnapshotDelete, SnapshotPut
+from .connect import ConnectService, ProfilePut as ConnectPut, InviteCreate, InviteAccept, Token
 
 
 class PrivateRoute(APIRoute):
@@ -48,6 +51,7 @@ def create_router(service: MemoryService, *, account_service=None, snapshot_serv
         from .sync import SnapshotService
         account_service = AccountService(service)
         snapshot_service = snapshot_service or SnapshotService(service)
+    connect = ConnectService(service)
     router = APIRouter(prefix="/v1", tags=["private-memory"], route_class=PrivateRoute)
 
     async def principal(request: Request):
@@ -61,6 +65,26 @@ def create_router(service: MemoryService, *, account_service=None, snapshot_serv
             yield subject
         finally:
             service.request_guard.reset(token)
+
+    @router.get("/connect")
+    def connect_state(subject=Depends(principal)):
+        return connect.state(subject)
+
+    @router.put("/connect/profile")
+    def connect_save(data: ConnectPut, subject=Depends(principal)):
+        return connect.save(subject, data)
+
+    @router.delete("/connect")
+    def connect_erase(subject=Depends(principal)):
+        return connect.erase(subject)
+
+    @router.post("/connect/invitations")
+    def connect_invite(data: InviteCreate, subject=Depends(principal)):
+        return connect.create(subject, data)
+
+    @router.delete("/connect/invitations/{identifier}")
+    def connect_remove(identifier: str, subject=Depends(principal)):
+        return connect.remove(subject, identifier)
 
     # Static paths must precede /memory/{identifier}, including DELETE.
     if snapshot_service is not None:
@@ -124,6 +148,7 @@ def create_router(service: MemoryService, *, account_service=None, snapshot_serv
     @router.get("/account/export")
     def export(subject=Depends(principal)):
         result = service.export(subject)
+        result["connect"] = connect.state(subject)
         if snapshot_service is not None:
             result["memory_snapshot"] = snapshot_service.get(subject)
         return result
@@ -196,7 +221,24 @@ def create_app(service: MemoryService | None = None, *, managed_accounts: bool =
         snapshots = SnapshotService(service)
     elif account_service is not None:
         raise ValueError("Account service requires managed accounts.")
-    app = FastAPI(title="Omni Account Memory", version="0.2.0", description="Account memory service. Production requires Apple and model credentials, TLS and a persistent private database.")
+    @asynccontextmanager
+    async def lifespan(app):
+        async def cleanup():
+            while True:
+                def purge_expired():
+                    with service.db() as db:
+                        db.execute("DELETE FROM connect_invites WHERE expires<=?", (service.clock(),))
+                await asyncio.to_thread(purge_expired)
+                await asyncio.sleep(3600)
+        task = asyncio.create_task(cleanup())
+        try:
+            yield
+        finally:
+            task.cancel()
+            with suppress(asyncio.CancelledError):
+                await task
+
+    app = FastAPI(lifespan=lifespan, title="Omni Account Memory", version="0.2.0", description="Account memory service. Production requires Apple and model credentials, TLS and a persistent private database.")
 
     @app.exception_handler(HTTPException)
     async def private_http_error(request: Request, error: HTTPException):
@@ -226,6 +268,45 @@ def create_app(service: MemoryService | None = None, *, managed_accounts: bool =
     @app.get("/public/style.css", include_in_schema=False)
     def public_stylesheet():
         return FileResponse(public_directory / "style.css", media_type="text/css", headers=public_headers)
+
+    connect = ConnectService(service)
+    public_connect = APIRouter(prefix="/connect/api", route_class=PrivateRoute)
+
+    def public_rate():
+        # Bounded global bucket: no visitor identities or invitation secrets in rate-limit rows.
+        service.rate("connect-public", "api")
+
+    @public_connect.post("/open", dependencies=[Depends(public_rate)])
+    def open_invitation(data: Token):
+        return connect.open(data.token)
+
+    @public_connect.post("/accept", dependencies=[Depends(public_rate)])
+    def accept_invitation(data: InviteAccept):
+        return connect.accept(data)
+
+    @public_connect.post("/report", dependencies=[Depends(public_rate)])
+    def read_report(data: Token):
+        return connect.receipt(data.token)
+
+    @public_connect.post("/revoke", dependencies=[Depends(public_rate)])
+    def revoke_report(data: Token):
+        return connect.receipt(data.token, revoke=True)
+
+    app.include_router(public_connect)
+    connect_headers = {**public_headers, "Cache-Control": "no-store",
+        "Content-Security-Policy": "default-src 'none'; style-src 'self'; script-src 'self'; connect-src 'self'; base-uri 'none'; form-action 'self'; frame-ancestors 'none'"}
+
+    @app.get("/connect", include_in_schema=False)
+    def connect_page():
+        return FileResponse(public_directory / "connect.html", media_type="text/html", headers=connect_headers)
+
+    @app.get("/public/connect.js", include_in_schema=False)
+    def connect_script():
+        return FileResponse(public_directory / "connect.js", media_type="application/javascript", headers=connect_headers)
+
+    @app.get("/public/connect.css", include_in_schema=False)
+    def connect_style():
+        return FileResponse(public_directory / "connect.css", media_type="text/css", headers=connect_headers)
 
     app.include_router(create_router(service, account_service=account_service, snapshot_service=snapshots, allow_legacy_sessions=not managed_accounts))
     return app

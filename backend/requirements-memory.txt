@@ -3,3 +3,4 @@ uvicorn==0.39.0
 httpx==0.28.1
 PyJWT[crypto]==2.10.1
 app-store-server-library==3.1.2
+lunar-python==1.4.8

@@ -16,11 +16,11 @@
     <p class="eyebrow">Omni: Daily Clarity</p>
     <h1>Your words.<br>Your choices.</h1>
     <p class="intro">This policy explains what stays on your device, what you can choose to send, and how to manage your information.</p>
-    <p class="meta">Effective September 16, 2026<br>Operator: Xiaobo Zhang · <a href="mailto:seatrial.ai@gmail.com">seatrial.ai@gmail.com</a></p>
+    <p class="meta">Effective October 3, 2026<br>Operator: Xiaobo Zhang · <a href="mailto:seatrial.ai@gmail.com">seatrial.ai@gmail.com</a></p>
 
     <aside class="notice" aria-labelledby="availability">
       <h2 id="availability">About this version</h2>
-      <p>Omni is in testing and is not publicly available on the App Store. Features vary by test version. The preview supports local reflection and memory controls. The optional processing described below for online accounts, conversations, account memory sync, and Plus applies only when your test version enables those features and you choose to use them. Plus is not yet on sale to the public.</p>
+      <p>Omni supports local reflection and memory controls. Features vary by app version. Online accounts, AI conversations, account memory sync, Plus, and Connect use the optional processing described below when your version enables those features and you choose to use them. Connect invitations require an adult profile and explicit sharing consent; there is no public profile directory.</p>
     </aside>
 
     <section aria-labelledby="journal">
@@ -71,9 +71,18 @@
       <p>The current preview does not enable an external birth-chart service. If one is added, this policy and the app's permission screen will describe its information, providers, and processing before use. The app does not require your current GPS location for a birth chart; a place lookup may send location text you enter to Apple's geocoding service.</p>
     </section>
 
+    <section aria-labelledby="connect-privacy">
+      <h2 id="connect-privacy">Connect invitations and compatibility reports</h2>
+      <p>Connect is optional and for adults 18 and older. A signed-in user can save a separate Connect profile with a nickname, birth date, optional personality type or five-element preference, and relationship, communication, social and life-priority preferences. Connect does not import your journal, AI memories or contacts. Your full birth date stays private to your account.</p>
+      <p>You manually share a one-person invitation link. Anyone with an unused link can respond, so send it only to the intended person. Invitations expire after seven days. Recipients see the inviter's nickname and invitation purpose before choosing whether to share. Recipients do not need an account. Their birthday is processed to calculate age, an approximate Sun sign and a civil-date day-stem element, but is not stored in the invitation or report.</p>
+      <p>After the recipient explicitly agrees, both sides can see a report based on their nicknames, ages, derived zodiac/element, self-reported personality and preferences. These answers are not public dating profiles. Report creation does not send them to OpenAI and does not save them as AI memories. Scores are creative reflection indices, not predictions of relationship success.</p>
+      <p>Recipients receive a separate private report link that also allows withdrawal. Keep it private: anyone holding it can view or withdraw that report. Invitation and report access keys are stored as hashes, and the website uses URL fragments to keep them out of ordinary request paths. The invitation page uses first-party JavaScript and session storage to recover an interrupted submission; it has no analytics or advertising scripts.</p>
+      <p>Completed report access expires after 90 days. Expired invitation data is removed on access and by an hourly service cleanup. Either side can remove the shared answers and report earlier: the inviter uses Connect's Remove or Delete Connect data controls; the recipient uses Withdraw on their private report page. Account deletion also removes the owner's Connect profile and all invitations. Screenshots, exports and older hosting backups may retain copies as described below. Contact support if you lose your private link.</p>
+    </section>
+
     <section aria-labelledby="sharing">
       <h2 id="sharing">Sharing, advertising, and support</h2>
-      <p>This version has no public profiles, stranger matching, direct messages, advertising SDK, third-party analytics SDK, or journal cloud sync. Omni does not automatically share your records with a partner or import your social contacts. These public pages use no scripts, analytics, third-party fonts, or tracking cookies.</p>
+      <p>This version has no public profiles, stranger matching, direct messages, advertising SDK, third-party analytics SDK, or journal cloud sync. Omni does not automatically share your records with a partner or import your social contacts. Support and privacy pages use no scripts. The optional Connect invitation page uses only first-party scripts as described above; none of these pages use analytics, third-party fonts or tracking cookies.</p>
       <p>You choose whether and where to save exports, including whether the destination is a cloud service. If you email support, we receive your email address and the information you choose to include, and use it to respond and handle your request. Please do not send journal entries, account credentials, or sensitive attachments unless needed to resolve the issue. Email is processed by the email services involved.</p>
     </section>
 
