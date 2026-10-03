@@ -46,6 +46,7 @@ final class ClarityJourneyTests: XCTestCase {
         onboard()
         app.buttons["Connect"].firstMatch.tap()
         screenshot("04-Connect")
+        reveal(app.buttons["connect.uncertainty"])
         app.buttons["connect.uncertainty"].tap()
         fill("What do you know for sure?", "They have not replied since lunch")
         fill("What story is your mind adding?", "I worry I said something wrong")
@@ -60,10 +61,27 @@ final class ClarityJourneyTests: XCTestCase {
         app.buttons["Connections"].tap()
         XCTAssertTrue(app.staticTexts["They have not replied since lunch"].waitForExistence(timeout: 5))
         app.buttons["Connect"].firstMatch.tap()
+        reveal(app.buttons["connect.uncertainty"])
         app.buttons["connect.uncertainty"].tap()
         XCTAssertTrue(app.staticTexts["OMNI PLUS"].waitForExistence(timeout: 5))
         screenshot("06-Plus")
         XCTAssertTrue(app.buttons["Close"].exists)
+    }
+
+    func testConnectInvitationEntryPreservesOriginalReflection() {
+        onboard()
+        app.buttons["Connect"].firstMatch.tap()
+        let entry = app.buttons["connect.compatibility"]
+        reveal(entry); entry.tap()
+        let signIn = app.buttons["connect.signIn"]
+        XCTAssertTrue(signIn.waitForExistence(timeout: 5))
+        screenshot("12-Connect-Invite")
+        signIn.tap()
+        XCTAssertTrue(app.buttons["account.done"].waitForExistence(timeout: 5))
+        app.buttons["account.done"].tap()
+        app.buttons["Done"].firstMatch.tap()
+        reveal(app.buttons["connect.uncertainty"])
+        XCTAssertTrue(app.buttons["connect.uncertainty"].exists)
     }
 
     func testSettingsOfferPrivacyAndKeepChartsHiddenWithoutEndpoint() {

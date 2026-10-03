@@ -6,11 +6,18 @@ struct ConnectionsScreen: View {
     @State private var selected: ConnectionKind?
     @State private var paywall = false
     @State private var showDating = false
+    @State private var showConnect = false
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 25) {
                     PageHeading(eyebrow: "CONNECTION STARTS WITH YOU", title: "Less guessing.\nMore connection.", subtitle: "A little support for the moments that feel like a lot. You can do this on your own.")
+                    OmniCard(color: OmniTheme.sage) {
+                        Eyebrow(text: "NEW · YOUR COSMIC CONNECTIONS")
+                        Text("Who brings out your best?").font(OmniTheme.title(28))
+                        Text("Compare your goals, five elements, zodiac and personality. Invite someone to share a private report, then discover your strongest connections.").font(.subheadline)
+                        OmniButton(title: "Find our common ground", icon: "sparkles") { showConnect = true }.accessibilityIdentifier("connect.compatibility")
+                    }
                     if ReleaseFeatures.dating {
                     OmniCard(color: OmniTheme.sage) {
                         Eyebrow(text: "NEW · COSMIC CONNECTIONS")
@@ -50,6 +57,7 @@ struct ConnectionsScreen: View {
             }.background(OmniTheme.paper).toolbar(.hidden, for: .navigationBar)
                 .sheet(item: $selected) { ConnectionFlow(kind: $0) }
                 .sheet(isPresented: $paywall) { PlusScreen() }
+                .sheet(isPresented: $showConnect) { ConnectScreen() }
                 .sheet(isPresented: $showDating) { DatingScreen() }
         }
     }
