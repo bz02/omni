@@ -300,7 +300,7 @@ struct DatingConversationScreen: View {
                                     Text(message.text).textSelection(.enabled)
                                     HStack(spacing: 5) {
                                         Text(Date(timeIntervalSince1970: message.created_at), format: .dateTime.month(.abbreviated).day().hour().minute())
-                                        if message.mine { Text(message.seen == true ? "Seen" : "Sent") }
+                                        if message.mine { Text((chat.peerReadThrough ?? -1) >= (message.sequence ?? Int.max) ? "Seen" : "Sent") }
                                     }.font(.caption2).foregroundStyle(.secondary)
                                 }.padding(14).background(message.mine ? OmniTheme.sage : .white, in: RoundedRectangle(cornerRadius: 18))
                                     .contextMenu { Button("Reply", systemImage: "arrowshape.turn.up.left") { chat.reply = message } }

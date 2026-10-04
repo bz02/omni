@@ -183,6 +183,7 @@ final class ConnectionChatStore: ObservableObject {
     @Published private(set) var busy = false
     @Published private(set) var readReceipts = false
     @Published private(set) var pinned = false
+    @Published private(set) var peerReadThrough: Int?
     @Published private(set) var pending: Outgoing?
     @Published var draft = ""
     @Published var reply: DatingMessage?
@@ -193,6 +194,7 @@ final class ConnectionChatStore: ObservableObject {
         let next_before: Int?
         let read_receipts: Bool
         let pinned: Bool
+        let peer_read_through: Int?
     }
     private var initialized = false
     static func path(_ id: UUID) -> String { "/v1/dating/matches/\(id.uuidString.lowercased())" }
@@ -211,7 +213,7 @@ final class ConnectionChatStore: ObservableObject {
             for message in page.messages { merged[message.id] = message }
             messages = merged.values.sorted { ($0.sequence ?? 0) < ($1.sequence ?? 0) }
             if older || !initialized { before = page.next_before }
-            initialized = true; readReceipts = page.read_receipts; pinned = page.pinned; error = nil
+            initialized = true; readReceipts = page.read_receipts; pinned = page.pinned; peerReadThrough = page.peer_read_through; error = nil
             // The view calls this only while its conversation is active and visible.
             if !older, let sequence = page.messages.last?.sequence {
                 struct Read: Encodable { let sequence: Int }
