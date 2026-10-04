@@ -434,7 +434,8 @@ class DatingService:
                     seen=bool(r['sender']==subject and other_state['read_receipts'] and other_state['last_read']>=r['sequence']),
                     reply_to=r['reply_to'], reply_preview=quoted['text'][:160] if quoted else None))
             return dict(messages=messages, has_more=more, next_before=rows[-1]['sequence'] if more else None,
-                        read_receipts=bool(state['read_receipts']), pinned=bool(state['pinned']))
+                        read_receipts=bool(state['read_receipts']), pinned=bool(state['pinned']),
+                        peer_read_through=other_state['last_read'] if other_state['read_receipts'] else None)
 
     def mark_read(self, subject, identifier, data):
         self.available()

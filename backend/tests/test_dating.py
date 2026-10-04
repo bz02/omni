@@ -269,6 +269,10 @@ def test_chat_history_receipts_quotes_restart_and_deletion(system):
     assert client.patch(path+'/settings',headers=h('bob'),json={'read_receipts':True,'pinned':True}).status_code==200
     assert all(m['seen'] for m in messages('alice'))
     assert inbox('bob')['pinned'] and not inbox('alice')['pinned']
+    assert client.get(path+'/messages',headers=h('alice')).json()['peer_read_through']==35
+    client.patch(path+'/settings',headers=h('bob'),json={'read_receipts':False})
+    assert client.get(path+'/messages',headers=h('alice')).json()['peer_read_through'] is None
+    assert not any(m['seen'] for m in messages('alice'))
     body={'id':str(uuid.uuid4()),'text':'A reply','reply_to':ids[0]}
     for _ in range(2): assert client.post(path+'/messages',headers=h('bob'),json=body).status_code==200
     assert messages('alice')[-1]['reply_preview']=='Message 0' and messages('alice')[-1]['sequence']==36

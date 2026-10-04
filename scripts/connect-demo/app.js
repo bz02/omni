@@ -40,7 +40,7 @@ const merged=new Map(history.map(m=>[m.id,m]));for(const m of data.messages)merg
 history=[...merged.values()].sort((a,b)=>a.sequence-b.sequence);
 $('chat').hidden=false;$('chat-title').textContent=currentMatch.profile.name;$('opener').textContent=currentMatch.profile.pairing.prompt;
 $('older').hidden=before===null;$('pin').textContent=data.pinned?'Unpin conversation':'Pin conversation';$('receipts').checked=data.read_receipts;
-$('messages').replaceChildren(...history.map(m=>{const row=node('div','');row.className='bubble '+(m.mine?'mine':'theirs');if(m.reply_preview)row.append(node('blockquote',m.reply_preview));row.append(node('p',m.text),node('small',new Date(m.created_at*1000).toLocaleString()+(m.mine?(m.seen?' · Seen':' · Sent'):'')),button('Reply',async()=>{replyTo=m;replyLabel();$('message').focus();},true));return row;}));
+$('messages').replaceChildren(...history.map(m=>{const row=node('div','');row.className='bubble '+(m.mine?'mine':'theirs');if(m.reply_preview)row.append(node('blockquote',m.reply_preview));row.append(node('p',m.text),node('small',new Date(m.created_at*1000).toLocaleString()+(m.mine?(data.peer_read_through!==null&&data.peer_read_through>=m.sequence?' · Seen':' · Sent'):'')),button('Reply',async()=>{replyTo=m;replyLabel();$('message').focus();},true));return row;}));
 replyLabel();
 if(!older&&data.messages.length){await api(path+'/read','POST',{sequence:data.messages.at(-1).sequence});if(oldLast!==history.at(-1)?.sequence)$('messages').scrollTop=$('messages').scrollHeight;}
 }
