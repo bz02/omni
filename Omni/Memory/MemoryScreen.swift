@@ -67,7 +67,7 @@ struct MemoryScreen: View {
             }
             .sheet(item: $editor) { route in MemoryEditorScreen(existing: route.memory, initialText: route.initialText) }
             .sheet(isPresented: $paywall) { PlusScreen() }
-            .confirmationDialog("Let Omni use the memories you choose?", isPresented: $enableConfirmation, titleVisibility: .visible) {
+            .alert("Let Omni use the memories you choose?", isPresented: $enableConfirmation) {
                 Button("Turn on memory") {
                     if setEnabled(true), let draft = pendingDraft {
                         editor = MemoryEditorRoute(memory: nil, initialText: draft)

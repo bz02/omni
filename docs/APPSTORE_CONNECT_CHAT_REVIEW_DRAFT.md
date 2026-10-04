@@ -1,6 +1,6 @@
 # Connect friendship and messages — release review draft
 
-Status: not submitted. Existing 1.2 Build 8 does not contain these changes. New release source keeps public discovery gated pending the items below; do not describe a gated build as a working public friendship release.
+Status checked October 4: Apple 1.2 Build 8 was submitted at 00:37 PDT and is Waiting for Review (6092fdb1-1b69-411f-8620-d5a5ad06715b). That submission does not contain these chat changes. Preserve it unless the user explicitly chooses replacement. New release source keeps public discovery gated pending the items below; do not describe a gated build as a working public friendship release.
 
 ## Proposed What's New
 Find your people with Omni Connect. Create an optional-photo friendship profile, discover adults on your wavelength, and connect by mutual choice. Once connected, keep the conversation going with private messages, quoted replies, unread counts and pinned conversations. Read receipts are yours to turn on or off. Birth-based insights offer conversation starters alongside your interests and communication preferences.
