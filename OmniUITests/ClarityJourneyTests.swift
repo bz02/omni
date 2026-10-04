@@ -120,7 +120,15 @@ final class ClarityJourneyTests: XCTestCase {
     func testReadyCosmosAndAstrologyChatPreserveGuestNavigation() {
         onboard()
         app.buttons["Connect"].firstMatch.tap()
+        #if DEBUG
+        let dating = app.buttons["connect.dating"]
+        reveal(dating); dating.tap()
+        XCTAssertTrue(app.buttons["dating.signIn"].waitForExistence(timeout: 5))
+        screenshot("12-Discovery-Guest")
+        app.navigationBars.buttons["Done"].tap()
+        #else
         XCTAssertFalse(app.buttons["connect.dating"].exists)
+        #endif
         app.buttons["Today"].firstMatch.tap()
         app.buttons["today.cosmos"].tap()
         let profile = app.buttons["cosmos.profile"]

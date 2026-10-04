@@ -4,9 +4,14 @@ import Combine
 struct ConnectProfile: Codable, Equatable {
     var name = ""
     var birth_date = "1995-01-01"
+    var birth_time: String?
+    var birth_timezone: String?
+    var birth_place: String?
+    var birth_longitude: Double?
+    var birth_fold: Int?
     var mbti = "unknown"
     var five_element = "auto"
-    var intention = "long_term"
+    var intention = "friendship"
     var communication = "mix"
     var social = "mix"
     var value = "growth"

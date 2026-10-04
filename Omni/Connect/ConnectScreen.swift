@@ -9,12 +9,12 @@ struct ConnectScreen: View {
     @State private var selected: ConnectInvitation?
     @State private var deleting: ConnectInvitation?
     @State private var erase = false
-    @State private var kind = "dating"
+    @State private var kind = "friendship"
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
-                    PageHeading(eyebrow: "CONNECT · BY CHOICE", title: "A little chemistry.\nA real conversation.", subtitle: "Find common ground through your goals, five elements, zodiac and personality.")
+                    PageHeading(eyebrow: "CONNECT · BY CHOICE", title: "Find your people.\nFeel understood.", subtitle: "Find common ground through your goals, five elements, zodiac and personality.")
                     if !account.isSignedIn {
                         OmniCard(color: OmniTheme.sage) {
                             Text("Start with someone you know.").font(OmniTheme.title(25))
@@ -43,8 +43,8 @@ struct ConnectScreen: View {
                         Eyebrow(text: "HOW RECOMMENDATIONS WORK")
                         Text("People first. Symbols second.").font(OmniTheme.title(24))
                         Text("Goals and stated preferences carry 85% of the index. Zodiac, five elements and optional personality type add 15%. Reports explain every lens and give you questions to ask each other.").font(.subheadline)
-                        Text("Recommendations come from people who accept your dating invitations and share compatible intentions. Friendship reports stay separate. No fabricated profiles or contact imports.").font(.caption).foregroundStyle(OmniTheme.muted)
-                        Text("Five elements use a self-reported element or the civil birth date's day stem, not a full Ba Zi chart. Zodiac uses approximate Sun-sign dates. These are creative references, not a prediction of love or safety.").font(.caption).foregroundStyle(OmniTheme.muted)
+                        Text("Recommendations come from people who accept your invitations. Friendship is the starting point; existing relationship reports remain available. No fabricated profiles or contact imports.").font(.caption).foregroundStyle(OmniTheme.muted)
+                        Text("Five elements are calculated from your birth date, time and location. Unknown times are excluded. Zodiac uses approximate Sun-sign dates. These are creative references, not a prediction of love or safety.").font(.caption).foregroundStyle(OmniTheme.muted)
                     }
                 }.padding(24)
             }.background(OmniTheme.paper).navigationTitle("Cosmic connections").navigationBarTitleDisplayMode(.inline)
@@ -84,7 +84,7 @@ struct ConnectScreen: View {
         OmniCard(color: OmniTheme.peach.opacity(0.6)) {
             Eyebrow(text: "STEP 2 · INVITE SOMEONE")
             Text("Who are you curious about?").font(OmniTheme.title(25))
-            Picker("Connection", selection: $kind) { Text("Dating").tag("dating"); Text("Friendship").tag("friendship") }.pickerStyle(.segmented)
+            Picker("Connection", selection: $kind) { Text("Friendship").tag("friendship"); Text("Relationship").tag("dating") }.pickerStyle(.segmented)
             OmniButton(title: "Create private invitation", icon: "link") { Task { await connect.invite(kind: kind, account: account) } }.disabled(connect.busy).accessibilityIdentifier("connect.invite")
         }
     }
@@ -93,7 +93,7 @@ struct ConnectScreen: View {
             Eyebrow(text: "STEP 3 · YOUR CONNECTIONS")
             if connect.recommendations.isEmpty {
                 Text("Your next connection starts with an invitation.").font(OmniTheme.title(24))
-                Text("When someone accepts a dating invite and your intentions align, they appear here in order of conversation fit. You decide who feels right.").font(.subheadline).foregroundStyle(OmniTheme.muted)
+                Text("When someone accepts your friendship invitation, they appear here in order of conversation fit. You decide who feels right.").font(.subheadline).foregroundStyle(OmniTheme.muted)
             } else {
                 Text("Worth getting to know").font(OmniTheme.title(27))
                 ForEach(connect.recommendations) { invitationRow($0) }
@@ -122,11 +122,11 @@ struct ConnectScreen: View {
 }
 
 enum ConnectOptions {
-    static let intentions = [("long_term", "Long-term relationship"), ("exploring", "Exploring"), ("casual", "Something casual"), ("friendship", "Friendship")]
+    static let intentions = [("friendship", "Friendship · find your people"), ("long_term", "Long-term relationship"), ("exploring", "Exploring"), ("casual", "Something casual") ]
     static let communication = [("mix", "A balance of talking and space"), ("talk_it_out", "Talk it through"), ("time_to_think", "Time to think first")]
     static let social = [("mix", "A little of both"), ("quiet", "Quiet, small-group time"), ("outgoing", "Going out and meeting people")]
     static let values = [("growth", "Growth"), ("stability", "Stability"), ("adventure", "Adventure"), ("family", "Family"), ("creativity", "Creativity")]
-    static let elements = [("auto", "Use birth date's day element"), ("wood", "Wood — self-reported"), ("fire", "Fire — self-reported"), ("earth", "Earth — self-reported"), ("metal", "Metal — self-reported"), ("water", "Water — self-reported")]
+    private static let legacyElements = [("auto", "Use birth date's day element"), ("wood", "Wood — self-reported"), ("fire", "Fire — self-reported"), ("earth", "Earth — self-reported"), ("metal", "Metal — self-reported"), ("water", "Water — self-reported")]
     static let types = ["unknown", "ENFJ", "ENFP", "ENTJ", "ENTP", "ESFJ", "ESFP", "ESTJ", "ESTP", "INFJ", "INFP", "INTJ", "INTP", "ISFJ", "ISFP", "ISTJ", "ISTP"]
     static func title(_ key: String) -> String { intentions.first { $0.0 == key }?.1 ?? key }
 }
@@ -144,7 +144,7 @@ struct ConnectProfileEditor: View {
                     TextField("First name or nickname", text: $profile.name).onChange(of: profile.name) { _, value in profile.name = String(value.prefix(40)) }
                     DatePicker("Birthday", selection: $birthday, in: ...Date.now, displayedComponents: .date)
                     Picker("Personality type", selection: $profile.mbti) { ForEach(ConnectOptions.types, id: \.self) { Text($0 == "unknown" ? "Unknown / prefer not to say" : $0).tag($0) } }
-                    choice("Five-element lens", $profile.five_element, ConnectOptions.elements)
+                    BirthDetailsEditor(time: $profile.birth_time, zone: $profile.birth_timezone, place: $profile.birth_place, longitude: $profile.birth_longitude, fold: $profile.birth_fold)
                 }
                 Section("What actually matters") {
                     choice("Looking for", $profile.intention, ConnectOptions.intentions)
@@ -162,7 +162,7 @@ struct ConnectProfileEditor: View {
                         let f = DateFormatter(); f.calendar = Calendar(identifier: .gregorian); f.locale = Locale(identifier: "en_US_POSIX"); f.dateFormat = "yyyy-MM-dd"
                         profile.birth_date = f.string(from: birthday)
                         Task { if await connect.save(profile, account: account) { dismiss() } }
-                    }.disabled(!consent || profile.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || connect.busy)
+                    }.disabled((profile.birth_time != nil && profile.birth_timezone == nil) || !consent || profile.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || connect.busy)
                 }
             }.navigationTitle("My Connect profile").toolbar { Button("Cancel") { dismiss() } }
                 .onAppear { if let saved = connect.envelope?.profile { profile = saved; let f = DateFormatter(); f.calendar = Calendar(identifier: .gregorian); f.locale = Locale(identifier: "en_US_POSIX"); f.dateFormat = "yyyy-MM-dd"; birthday = f.date(from: saved.birth_date) ?? birthday } }

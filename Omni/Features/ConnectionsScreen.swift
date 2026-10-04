@@ -14,16 +14,16 @@ struct ConnectionsScreen: View {
                     PageHeading(eyebrow: "CONNECTION STARTS WITH YOU", title: "Less guessing.\nMore connection.", subtitle: "A little support for the moments that feel like a lot. You can do this on your own.")
                     OmniCard(color: OmniTheme.sage) {
                         Eyebrow(text: "NEW · YOUR COSMIC CONNECTIONS")
-                        Text("Who brings out your best?").font(OmniTheme.title(28))
+                        Text("Who feels on your wavelength?").font(OmniTheme.title(28))
                         Text("Compare your goals, five elements, zodiac and personality. Invite someone to share a private report, then discover your strongest connections.").font(.subheadline)
                         OmniButton(title: "Find our common ground", icon: "sparkles") { showConnect = true }.accessibilityIdentifier("connect.compatibility")
                     }
                     if ReleaseFeatures.dating {
                     OmniCard(color: OmniTheme.sage) {
                         Eyebrow(text: "NEW · COSMIC CONNECTIONS")
-                        Text("Meet someone. Be yourself.").font(OmniTheme.title(28))
-                        Text("Opt in to birthday-inspired discovery. Chat when you both choose to connect.").font(.subheadline)
-                        Button("Explore dating", systemImage: "heart.circle") { showDating = true }.accessibilityIdentifier("connect.dating")
+                        Text("Find your people.").font(OmniTheme.title(28))
+                        Text("Meet friends of all genders who feel on your wavelength. Add an optional photo, explore your five elements and connect by mutual choice.").font(.subheadline)
+                        Button("Find friends", systemImage: "heart.circle") { showDating = true }.accessibilityIdentifier("connect.dating")
                     }
                     }
                     OmniCard(color: OmniTheme.peach.opacity(0.7)) {

@@ -109,7 +109,7 @@ struct AccountHTTPTransport: AccountTransport {
         try Task.checkCancellation()
         guard let http = response as? HTTPURLResponse else { throw AccountError.invalidResponse }
         guard (200...299).contains(http.statusCode) else { throw AccountError.http(http.statusCode) }
-        guard data.count <= (imageGeneration ? 3_000_000 : 100_000) else { throw AccountError.invalidResponse }
+        guard data.count <= (imageGeneration ? 3_000_000 : path.hasPrefix("/v1/dating/") ? 1_500_000 : 100_000) else { throw AccountError.invalidResponse }
         return data
     }
 }
