@@ -8,8 +8,7 @@ from datetime import date, datetime, timezone
 from typing import Literal
 from fastapi import HTTPException
 from pydantic import BaseModel, ConfigDict, Field, StrictBool, StrictInt, field_validator
-from lunar_python import Solar
-from lunar_python.util import LunarUtil
+from .birth import BirthInput, elements_for
 def age_on(birthday, today):
     return today.year - birthday.year - ((today.month, today.day) < (birthday.month, birthday.day))
 
@@ -23,12 +22,12 @@ CONSENT = 'connect-v1'
 class Input(BaseModel):
     model_config = ConfigDict(extra='forbid', str_strip_whitespace=True)
 
-class ConnectProfile(Input):
+class ConnectProfile(BirthInput, Input):
     name: str = Field(min_length=1, max_length=40)
     birth_date: date
     mbti: str = 'unknown'
     five_element: Literal['auto', 'wood', 'fire', 'earth', 'metal', 'water'] = 'auto'
-    intention: Literal['long_term', 'exploring', 'casual', 'friendship'] = 'long_term'
+    intention: Literal['long_term', 'exploring', 'casual', 'friendship'] = 'friendship'
     communication: Literal['talk_it_out', 'time_to_think', 'mix'] = 'mix'
     social: Literal['quiet', 'outgoing', 'mix'] = 'mix'
     value: Literal['growth', 'stability', 'adventure', 'family', 'creativity'] = 'growth'
@@ -64,44 +63,46 @@ def normalize(p, today):
     age = age_on(p.birth_date, today)
     if not 18 <= age <= 100:
         raise HTTPException(422, 'Connect is for adults aged 18 to 100.')
-    # Declared civil-date/noon convention, not an exact Ba Zi or beneficial element.
-    stem = Solar.fromYmdHms(p.birth_date.year, p.birth_date.month, p.birth_date.day, 12, 0, 0).getLunar().getDayGan()
-    result = p.model_dump(mode='json', exclude={'birth_date', 'consent_version', 'five_element'})
-    result.update(sign=calendar_sign(p.birth_date), element=p.five_element if p.five_element != 'auto' else ELEMENTS[LunarUtil.WU_XING_GAN[stem]],
-                  element_basis='self_reported' if p.five_element != 'auto' else 'civil_date_day_stem', age=age)
+    result = p.model_dump(mode='json', exclude={'birth_date', 'birth_time', 'birth_timezone', 'birth_place', 'birth_longitude', 'birth_fold', 'consent_version', 'five_element'})
+    result.update(sign=calendar_sign(p.birth_date), age=age, **elements_for(p))
     return result
 
 def report(a, b, kind):
     dimensions = []
     def add(key, title, score, weight, why, prompt):
         dimensions.append(dict(key=key, title=title, score=score, weight=weight, explanation=why, prompt=prompt))
-    same_goal = a['intention'] == b['intention']
+    friendship = kind == 'friendship'
+    same_goal = friendship or a['intention'] == b['intention']
     goal = 90 if same_goal else 65 if 'exploring' in (a['intention'], b['intention']) else 35
-    add('intentions', 'Relationship goals', goal, 40, 'You named the same relationship goal.' if same_goal else 'Your goals differ. Clarify expectations before treating this as a romantic recommendation.', 'What are you hoping this connection could become?')
+    add('intentions', 'Why you connect' if friendship else 'Relationship goals', goal, 40, 'You both chose a friendship connection.' if friendship else 'You named the same relationship goal.' if same_goal else 'Your goals differ. Clarify expectations before treating this as a romantic recommendation.', 'What are you hoping this connection could become?')
     comm = 88 if a['communication'] == b['communication'] else 75 if 'mix' in (a['communication'], b['communication']) else 55
     add('communication', 'Communication rhythm', comm, 20, 'Your stated pacing is similar.' if comm == 88 else 'Agree on when to talk and when to take space; a different pace does not mean a lack of interest.', 'When something feels off, do you want to talk now or think first?')
     shared = a['value'] == b['value']
     add('values', 'Shared priorities', 90 if shared else 65, 15, f"You both prioritize {a['value']}." if shared else f"One prioritizes {a['value']}; the other {b['value']}. Make room for both.", 'What does your top priority look like in an ordinary week?')
-    add('social', 'Time together', 88 if a['social'] == b['social'] else 75 if 'mix' in (a['social'], b['social']) else 55, 10, 'Based on your own preferred social pace, not your personality label.', 'What balance of quiet time, friends and dates feels good to you?')
+    add('social', 'Time together', 88 if a['social'] == b['social'] else 75 if 'mix' in (a['social'], b['social']) else 55, 10, 'Based on your own preferred social pace, not your personality label.', 'What balance of quiet time and time with friends feels good to you?' if friendship else 'What balance of quiet time, friends and dates feels good to you?')
     x, y = SIGN_ELEMENTS[a['sign']], SIGN_ELEMENTS[b['sign']]
     zodiac = 80 if x == y else 75 if {x, y} in [{'fire','air'}, {'earth','water'}] else 60
     add('zodiac', 'Zodiac lens', zodiac, 7, f"{a['sign']} + {b['sign']}. Approximate calendar Sun signs: same element 80, fire/air or earth/water 75, other combinations 60. Births near a sign boundary need exact time verification.", 'Where do your different approaches make life more interesting?')
-    x, y = a['element'], b['element']
-    element_score = 80 if x == y else 85 if GENERATES[x] == y or GENERATES[y] == x else 60
-    add('elements', 'Five-element lens', element_score, 5, f"{x.title()} + {y.title()}. Same element 80, a generating pair 85, other pairs 60. Auto uses the civil birth date's day stem at noon, without true-solar-time correction; it is not a full Ba Zi chart or Xi/Yong Shen.", 'How can one of you support the other without doing all the giving?')
+    x, y = a.get('element'), b.get('element')
+    element_score = None if not x or not y else 80 if x == y else 85 if GENERATES[x] == y or GENERATES[y] == x else 60
+    why = 'Birth time is unknown for one or both people. This lens is excluded, without lowering the score.' if element_score is None else f"{x.title()} + {y.title()}. Calculated day-master elements from birth inputs; same element 80, generating pair 85, other pairs 60."
+    if any(p.get('element_basis') in {'self_reported','civil_date_day_stem'} for p in (a,b)):
+        why += ' One or both elements came from an earlier date-only or self-reported invitation; create a new invitation with birth time to update this lens.'
+    why += ' New calculation uses local mean solar time when birth longitude is available, otherwise local civil time; midnight day boundary and exact solar terms for year/month. It is not apparent solar time or a Xi/Yong Shen assessment.'
+    add('elements', 'Five elements · calculated', element_score, 5, why, 'How can one of you support the other without doing all the giving?')
     mbti = None if 'unknown' in (a['mbti'], b['mbti']) else 60 + 5 * sum(x == y for x,y in zip(a['mbti'],b['mbti']))
-    add('personality', 'Personality lens', mbti, 3, f"{a['mbti'].upper() if a['mbti'] != 'unknown' else 'Not provided'} + {b['mbti'].upper() if b['mbti'] != 'unknown' else 'Not provided'}. Optional self-reported four-letter type; no type is an ideal partner. Similarity index: 60 + 5 per shared letter. Unknown types are excluded, not penalized.", 'What do people often misunderstand about how you recharge or decide?')
+    add('personality', 'Personality lens', mbti, 3, f"{a['mbti'].upper() if a['mbti'] != 'unknown' else 'Not provided'} + {b['mbti'].upper() if b['mbti'] != 'unknown' else 'Not provided'}. Optional self-reported four-letter type; no type guarantees a good connection. Similarity index: 60 + 5 per shared letter. Unknown types are excluded, not penalized.", 'What do people often misunderstand about how you recharge or decide?')
     used = [d for d in dimensions if d['score'] is not None]
     score = round(sum(d['score'] * d['weight'] for d in used) / sum(d['weight'] for d in used))
-    eligible = kind == 'dating' and 'friendship' not in (a['intention'], b['intention']) and goal >= 65
+    eligible = friendship or kind == 'dating' and 'friendship' not in (a['intention'], b['intention']) and goal >= 65
     strengths = [d['explanation'] for d in dimensions[:4] if d['score'] >= 80]
     friction = [d['explanation'] for d in dimensions[:4] if d['score'] < 80]
-    return dict(method='omni-connect-v1', score=score, recommendation='Worth a conversation' if eligible and score >= 75 else 'Explore with curiosity' if eligible else 'Clarify your intentions' if kind == 'dating' else 'Build your friendship',
+    return dict(method='omni-connect-v2', score=score, recommendation=('On a similar wavelength' if score >= 75 else 'A different perspective') if friendship else 'Worth a conversation' if eligible and score >= 75 else 'Explore with curiosity' if eligible else 'Clarify your intentions' if kind == 'dating' else 'Build your friendship',
                 recommended=eligible, names=[a['name'], b['name']], kind=kind, dimensions=dimensions,
                 strengths=strengths or ['You have different starting points. Curiosity matters more than similarity.'],
                 friction=friction or ['Similar answers do not guarantee chemistry. Check how you feel in real conversations.'],
                 date_idea='Try a quiet coffee and a walk, with an easy way for either person to leave.' if 'quiet' in (a['social'], b['social']) else 'Try a daytime museum or bookstore visit and compare the things that caught your attention.',
-                disclaimer='A creative conversation-fit index, not a probability of love, safety or relationship success. Goals and stated preferences carry 85% of the weight; zodiac, five elements and personality carry 15%. Missing personality is excluded and remaining weights are normalized. Profiles are self-reported. Reports use the details shared at invitation time.')
+                disclaimer='A creative conversation-fit index, not a measurement of an energy field or a probability of safety or relationship success. Goals and stated preferences carry 85% of the weight; zodiac, five elements and personality carry 15%. Missing birth time or personality is excluded and remaining weights are normalized. Profiles are self-reported. Reports use the profile details supplied for this comparison.')
 
 def digest(raw): return hashlib.sha256(raw.encode()).hexdigest()
 

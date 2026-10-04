@@ -37,6 +37,10 @@ class MemoryService:
         descriptor = os.open(str(self.database), os.O_CREAT | os.O_RDWR, 0o600)
         os.close(descriptor)
         os.chmod(self.database, 0o600)
+        # WAL permits concurrent readers on the existing single-instance persistent disk.
+        # FULL durability acknowledges a message only after the transaction is committed.
+        with sqlite3.connect(self.database, timeout=15) as connection:
+            connection.execute('PRAGMA journal_mode=WAL')
         with self.content_db() as db:
             db.executescript("""
                 CREATE TABLE IF NOT EXISTS accounts (
@@ -72,9 +76,10 @@ class MemoryService:
 
     @contextmanager
     def db(self):
-        db = sqlite3.connect(self.database, timeout=5)
+        db = sqlite3.connect(self.database, timeout=15)
         db.row_factory = sqlite3.Row
         db.execute("PRAGMA foreign_keys=ON")
+        db.execute("PRAGMA synchronous=FULL")
         db.execute("PRAGMA secure_delete=ON")
         try:
             db.execute("BEGIN IMMEDIATE")
@@ -123,7 +128,7 @@ class MemoryService:
             db.execute("UPDATE accounts SET premium_until=?, revision=revision+1 WHERE subject=?", (premium_until, subject))
 
     def rate(self, subject, bucket="api"):
-        limit = self.chat_limit if bucket == "chat" else 120
+        limit = self.chat_limit if bucket == "chat" else (60 if bucket == "direct-message" else 120)
         minute = int(self.clock()) // 60
         with self.content_db() as db:
             prior = db.execute("SELECT * FROM rate_limits WHERE subject=? AND bucket=?", (subject, bucket)).fetchone()
@@ -222,6 +227,8 @@ class MemoryService:
     def erase(self, subject):
         with self.content_db() as db:
             self.account(db, subject)
+            from .dating import erase_dating
+            erase_dating(db, subject)
             db.execute("DELETE FROM memories WHERE subject=?", (subject,))
             db.execute("DELETE FROM conversations WHERE subject=?", (subject,))
             db.execute("UPDATE accounts SET enabled=0,revision=revision+1 WHERE subject=?", (subject,))

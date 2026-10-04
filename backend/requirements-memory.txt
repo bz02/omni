@@ -4,3 +4,5 @@ httpx==0.28.1
 PyJWT[crypto]==2.10.1
 app-store-server-library==3.1.2
 lunar-python==1.4.8
+Pillow==11.3.0
+tzdata==2026.4

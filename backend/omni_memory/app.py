@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager, suppress
 
 from fastapi import APIRouter, Depends, FastAPI, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 from fastapi.routing import APIRoute
 from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional
@@ -15,6 +15,7 @@ from .auth import verify_session
 from .models import ChatRequest, MemoryCreate, MemoryUpdate, SettingsUpdate
 from .service import MemoryService
 from .sync import SnapshotDelete, SnapshotPut
+from .dating import DatingService, ProfilePut, MessagePut, ReportPut, PhotoPut, PhotoDelete, HistoryQuery, ChatRead, ChatSettings
 from .connect import ConnectService, ProfilePut as ConnectPut, InviteCreate, InviteAccept, Token
 
 
@@ -28,7 +29,7 @@ class PrivateRoute(APIRoute):
             chunks, size = [], 0
             async for chunk in request.stream():
                 size += len(chunk)
-                limit = 2_097_152 if request.url.path == "/v1/memory/snapshot" else 131072
+                limit = 2_097_152 if request.url.path in {"/v1/memory/snapshot", "/v1/dating/profile/photo"} else 131072
                 if size > limit:
                     raise HTTPException(413, "This request is too large.")
                 chunks.append(chunk)
@@ -45,14 +46,15 @@ class PrivateRoute(APIRoute):
         return handler
 
 
-def create_router(service: MemoryService, *, account_service=None, snapshot_service=None, allow_legacy_sessions: bool = False) -> APIRouter:
+def create_router(service: MemoryService, *, account_service=None, snapshot_service=None, allow_legacy_sessions: bool = False, dating_service=None) -> APIRouter:
     if account_service is None and not allow_legacy_sessions:
         from .accounts import AccountService
         from .sync import SnapshotService
         account_service = AccountService(service)
         snapshot_service = snapshot_service or SnapshotService(service)
-    connect = ConnectService(service)
     router = APIRouter(prefix="/v1", tags=["private-memory"], route_class=PrivateRoute)
+    dating = dating_service or DatingService(service)
+    connect = ConnectService(service)
 
     async def principal(request: Request):
         authorization = request.headers.get("Authorization", "")
@@ -85,6 +87,81 @@ def create_router(service: MemoryService, *, account_service=None, snapshot_serv
     @router.delete("/connect/invitations/{identifier}")
     def connect_remove(identifier: str, subject=Depends(principal)):
         return connect.remove(subject, identifier)
+
+    @router.get("/dating/profile")
+    def dating_profile(subject=Depends(principal)):
+        return dating.get(subject)
+
+    @router.put("/dating/profile")
+    def save_dating_profile(data: ProfilePut, subject=Depends(principal)):
+        return dating.put(subject, data)
+
+    @router.delete("/dating/profile")
+    def delete_dating_profile(subject=Depends(principal)):
+        return dating.delete(subject)
+
+    @router.get("/dating/discover")
+    def discover(subject=Depends(principal)):
+        return dating.discover(subject)
+
+    @router.post("/dating/profiles/{identifier}/like")
+    def like_profile(identifier: str, subject=Depends(principal)):
+        return dating.like(subject, identifier)
+
+    @router.get('/dating/likes')
+    def dating_likes(subject=Depends(principal)): return dating.likes(subject)
+
+    @router.delete('/dating/profiles/{identifier}/like')
+    def dating_unlike(identifier: str, subject=Depends(principal)): return dating.unlike(subject, identifier)
+
+    @router.post('/dating/profiles/{identifier}/pass')
+    def dating_pass(identifier: str, subject=Depends(principal)): return dating.pass_profile(subject, identifier)
+
+    @router.put('/dating/profile/photo')
+    def dating_upload_photo(data: PhotoPut, subject=Depends(principal)): return dating.put_photo(subject, data)
+
+    @router.delete('/dating/profile/photo')
+    def dating_remove_photo(data: PhotoDelete, subject=Depends(principal)): return dating.remove_photo(subject, data.expected_revision)
+
+    @router.get('/dating/photos/{identifier}')
+    def dating_get_photo(identifier: str, subject=Depends(principal)):
+        return Response(dating.photo(subject, identifier), media_type='image/jpeg', headers={'Cache-Control':'no-store', 'X-Content-Type-Options':'nosniff'})
+
+    @router.post("/dating/profiles/{identifier}/block")
+    def block_profile(identifier: str, subject=Depends(principal)):
+        return dating.block(subject, identifier)
+
+    @router.post("/dating/profiles/{identifier}/report")
+    def report_profile(identifier: str, data: ReportPut, subject=Depends(principal)):
+        return dating.block(subject, identifier, data)
+
+    @router.get("/dating/matches")
+    def dating_matches(subject=Depends(principal)):
+        return dating.matches(subject)
+
+    @router.get("/dating/matches/{identifier}/messages")
+    def dating_messages(identifier: str, subject=Depends(principal)):
+        return dating.messages(subject, identifier)
+
+    @router.post('/dating/matches/{identifier}/history')
+    def chat_history(identifier: str, data: HistoryQuery, subject=Depends(principal)):
+        return dating.messages(subject, identifier, data)
+
+    @router.post('/dating/matches/{identifier}/read')
+    def chat_read(identifier: str, data: ChatRead, subject=Depends(principal)):
+        return dating.mark_read(subject, identifier, data)
+
+    @router.patch('/dating/matches/{identifier}/settings')
+    def chat_settings(identifier: str, data: ChatSettings, subject=Depends(principal)):
+        return dating.chat_settings(subject, identifier, data)
+
+    @router.post("/dating/matches/{identifier}/messages")
+    def send_dating_message(identifier: str, data: MessagePut, subject=Depends(principal)):
+        return dating.send(subject, identifier, data)
+
+    @router.delete("/dating/matches/{identifier}")
+    def unmatch(identifier: str, subject=Depends(principal)):
+        return dating.unmatch(subject, identifier)
 
     # Static paths must precede /memory/{identifier}, including DELETE.
     if snapshot_service is not None:
@@ -148,6 +225,7 @@ def create_router(service: MemoryService, *, account_service=None, snapshot_serv
     @router.get("/account/export")
     def export(subject=Depends(principal)):
         result = service.export(subject)
+        result["dating"] = dating.export(subject)
         result["connect"] = connect.state(subject)
         if snapshot_service is not None:
             result["memory_snapshot"] = snapshot_service.get(subject)
@@ -211,7 +289,7 @@ class VerifySubscription(BaseModel):
     signed_transaction: str = Field(min_length=1, max_length=32768)
 
 
-def create_app(service: MemoryService | None = None, *, managed_accounts: bool = True, account_service=None) -> FastAPI:
+def create_app(service: MemoryService | None = None, *, managed_accounts: bool = True, account_service=None, dating_service=None) -> FastAPI:
     service = service or MemoryService.from_env()
     snapshots = None
     if managed_accounts:
@@ -308,5 +386,5 @@ def create_app(service: MemoryService | None = None, *, managed_accounts: bool =
     def connect_style():
         return FileResponse(public_directory / "connect.css", media_type="text/css", headers=connect_headers)
 
-    app.include_router(create_router(service, account_service=account_service, snapshot_service=snapshots, allow_legacy_sessions=not managed_accounts))
+    app.include_router(create_router(service, account_service=account_service, snapshot_service=snapshots, allow_legacy_sessions=not managed_accounts, dating_service=dating_service))
     return app

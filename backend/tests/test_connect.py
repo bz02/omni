@@ -95,7 +95,8 @@ def test_goals_outweigh_symbolic_lenses_and_unknown_type_is_excluded():
     assert r['score']>=80
     b['intention']='casual'
     assert not report(a,b,'dating')['recommended']
-    assert not report(a,a,'friendship')['recommended']
+    assert report(a,a,'friendship')['recommended']
+    assert report(a,a,'friendship')['recommendation'] == 'On a similar wavelength'
     assert report(a,b,'dating')['score']==report(b,a,'dating')['score']
 
 def test_public_page_headers_and_payload_limits(system):

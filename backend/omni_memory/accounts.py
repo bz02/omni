@@ -299,6 +299,8 @@ class AccountService:
             raise
         with self.memory.db() as db:
             # Delete content, opaque identifier, subscriptions and every device session atomically.
+            from .dating import erase_dating
+            erase_dating(db, subject)
             db.execute("DELETE FROM memories WHERE subject=?", (subject,))
             db.execute("DELETE FROM conversations WHERE subject=?", (subject,))
             if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='native_snapshots'").fetchone():
