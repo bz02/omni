@@ -1,9 +1,5 @@
-// Keep unverified new services out of the published experience.
+// Friend discovery still requires the authenticated service and per-profile opt-in/review.
 enum ReleaseFeatures {
-    #if DEBUG
     static let dating = true
-    #else
-    static let dating = false // Enable after moderation ownership + privacy declarations are ready.
-    #endif
     static let aiImages = false
 }

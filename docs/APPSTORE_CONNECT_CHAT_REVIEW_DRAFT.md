@@ -1,6 +1,6 @@
 # Connect friendship and messages — release review draft
 
-Status checked October 4: Apple 1.2 Build 8 was submitted at 00:37 PDT and is Waiting for Review (6092fdb1-1b69-411f-8620-d5a5ad06715b). That submission does not contain these chat changes. Preserve it unless the user explicitly chooses replacement. New release source keeps public discovery gated pending the items below; do not describe a gated build as a working public friendship release.
+Status checked October 4: Apple 1.2 Build 8 was submitted at 00:37 PDT and is Waiting for Review (6092fdb1-1b69-411f-8620-d5a5ad06715b). That submission does not contain these chat changes. Preserve it unless the user explicitly chooses replacement. The user requires this next submission to include friend messaging. New release source enables the native friendship entry; server enablement and the items below are still pending. Do not describe the old Build 8 as a messaging release.
 
 ## Proposed What's New
 Find your people with Omni Connect. Create an optional-photo friendship profile, discover adults on your wavelength, and connect by mutual choice. Once connected, keep the conversation going with private messages, quoted replies, unread counts and pinned conversations. Read receipts are yours to turn on or off. Birth-based insights offer conversation starters alongside your interests and communication preferences.
@@ -24,7 +24,7 @@ All below are linked to the user's account; none used for tracking or advertisin
 
 These are proposed classifications, not a published attestation. Proposed conservative classification: Sensitive Info for supported legacy dating preferences, Coarse Location for user-selected cities. Birth city search uses a selected city's center longitude, not the device's current location. The public profile shows chosen city, never exact private birth fields.
 
-Apple definitions: https://developer.apple.com/app-store/app-privacy-details/ (checked October 4, 2026). Contacts includes social graph; messages include content and participants. Update the bundled privacy manifest consistently before enabling the feature.
+Apple definitions: https://developer.apple.com/app-store/app-privacy-details/ (checked October 4, 2026). Contacts includes social graph; messages include content and participants. The bundled manifest now includes these categories using Apple's documented identifiers; App Store Connect publication remains pending approval.
 
 ## Outstanding release actions
 1. Name the person who will review profiles/photos/reports; establish queue access and response routine.

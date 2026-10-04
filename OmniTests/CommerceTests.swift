@@ -63,8 +63,12 @@ struct CommerceTests {
         let session = try makeSession()
         defer { cleanUp(session) }
         let store = SubscriptionStore()
-        await store.refreshEntitlements()
-        #expect(!store.hasPremium)
+        // Clearing StoreKit's prior session is asynchronous on the cloud runner.
+        // Establish a genuinely empty fixture before testing listener-only delivery.
+        try await eventually {
+            await store.refreshEntitlements()
+            return !store.hasPremium
+        }
 
         // SKTestSession creates an actual local StoreKit transaction. No entitlement
         // flag is assigned, and no manual refresh is used to pass the listener checks.
